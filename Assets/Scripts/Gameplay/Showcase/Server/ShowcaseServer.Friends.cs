@@ -12,7 +12,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
         static readonly Dictionary<int, FriendListSaveData> s_FriendLists = new();
         static readonly List<(int from, int to)> s_FriendRequests = new();
         static readonly List<List<ulong>> s_Parties = new(); // [0] 이 파티장
-        static readonly List<(string kind, ulong from, ulong to)> s_Invites = new();
+        // 초대한 사람 이름도 같이 둔다 — 초대한 사람이 나간 뒤 수락해도 초대를 찾아 「나갔습니다」를 알릴 수 있게
+        static readonly List<(string kind, ulong from, string fromName, ulong to)> s_Invites = new();
         const int k_PartyMax = 4;
 
         static void RegisterFriendHandlers()
@@ -106,14 +107,14 @@ namespace Unity.BossRoom.Gameplay.Showcase
             if (PartyOf(target) != null) { Toast(p, $"{target.Name} 님은 이미 파티에 있습니다", true); return; }
             if ((PartyOf(p)?.Count ?? 1) >= k_PartyMax) { Toast(p, "파티는 최대 4명입니다", true); return; }
             s_Invites.RemoveAll(i => i.kind == "party" && i.to == target.ClientId);
-            s_Invites.Add(("party", p.ClientId, target.ClientId));
+            s_Invites.Add(("party", p.ClientId, p.Name, target.ClientId));
             ShowcaseNet.ToClient(target.ClientId, "invite", new Invite { Kind = "party", From = p.Name, Text = $"{p.Name} 님이 파티에 초대했습니다" });
             Toast(p, $"{target.Name} 님을 파티에 초대했습니다");
         }
 
         static void PartyAnswer(Profile p, string fromName, bool accept)
         {
-            var invite = s_Invites.FirstOrDefault(i => i.kind == "party" && i.to == p.ClientId && Of(i.from)?.Name == fromName);
+            var invite = s_Invites.FirstOrDefault(i => i.kind == "party" && i.to == p.ClientId && i.fromName == fromName);
             if (invite.kind == null) return;
             s_Invites.Remove(invite);
             var from = Of(invite.from);

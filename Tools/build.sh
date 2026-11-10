@@ -63,11 +63,11 @@ case "${1:-}" in
     SERVER=$!
     trap 'kill $SERVER 2>/dev/null || true' EXIT
     sleep 8
-    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user qa_player1 -pass "$P1" -quitAfter 45 -logFile "$ROOT/Builds/s-p1.log" \
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user qa_player1 -pass "$P1" -quitAfter "${Q1:-45}" -logFile "$ROOT/Builds/s-p1.log" \
       -actions "${A1:-wait:3;friend_add:qa_player2;wait:4;party_invite:qa_player2;wait:4;guild_create:보스헌터;wait:2;guild_invite:qa_player2;wait:5;say:안녕하세요;psay:파티 출발;gsay:길드 반가워요}" > /dev/null 2>&1 &
     C1=$!
     sleep 1
-    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user qa_player2 -pass "$P2" -quitAfter 44 -logFile "$ROOT/Builds/s-p2.log" \
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user qa_player2 -pass "$P2" -quitAfter "${Q2:-44}" -logFile "$ROOT/Builds/s-p2.log" \
       -actions "${A2:-wait:5;friend_accept:qa_player1;wait:3;party_accept:qa_player1;wait:5;guild_accept:qa_player1;wait:4;say:반가워요}" > /dev/null 2>&1 || true
     wait $C1 || true
     echo "== 서버"; grep -E "\[api\]|Exception" "$ROOT/Builds/s-server.log" | head -8 || true

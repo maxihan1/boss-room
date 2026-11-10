@@ -37,6 +37,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
         static Task OnLeft(Profile p)
         {
             LeaveParty(p, quiet: true);
+            s_Invites.RemoveAll(i => i.to == p.ClientId);
             SystemChat($"{p.Name} 님이 나갔습니다");
             foreach (var other in Profiles.Values.Where(o => o.Loaded)) PushSocial(other);
             return Task.CompletedTask;
@@ -48,6 +49,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             await RefreshNames(force: true);
             await LoadFriends();
             await LoadGuilds();
+            // 읽는 동안 이미 들어온 사람에게 길드 · 친구를 다시 보내 준다
+            foreach (var p in Profiles.Values.Where(p => p.Loaded).ToList()) { Push(p); PushSocial(p); }
         }
 
         static async Task RefreshNames(bool force = false)

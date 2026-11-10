@@ -12,6 +12,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
         static readonly Dictionary<int, GuildSaveData> s_Guilds = new();
         const int k_GuildCost = 500;
         static int s_LocalGuildId = 100000; // 게임 API 가 없을 때(로컬 호스트) 쓰는 번호
+        // 길드 목록을 다 읽기 전에는 캐릭터의 길드 번호를 지우지 않는다 — 서버를 켠 직후 첫 접속자의 길드가 사라지던 버그
+        static bool s_GuildsLoaded;
 
         static void RegisterGuildHandlers()
         {
@@ -34,16 +36,18 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 g.GuildId = row.id;
                 s_Guilds[row.id] = g;
             }
+            s_GuildsLoaded = true;
         }
 
         static GuildSaveData GuildOf(Profile p)
         {
-            if (p.P.GuildId == 0) return null;
-            if (s_Guilds.TryGetValue(p.P.GuildId, out var g) && g.MemberList.Any(m => m.CharacterId == p.CharacterId)) return g;
-            // 길드가 없어졌거나 추방된 사이 저장이 남은 경우 — 비운다
-            p.P.GuildId = 0;
-            p.Dirty = true;
-            return null;
+            if (p.P.GuildId != 0 && s_Guilds.TryGetValue(p.P.GuildId, out var g) && g.MemberList.Any(m => m.CharacterId == p.CharacterId)) return g;
+            if (!s_GuildsLoaded && GameApi.Enabled) return null;
+            // 길드 명단이 정본이다 — 명단에 있으면 캐릭터 쪽 번호를 되살리고, 없으면(해산 · 추방) 비운다
+            var found = s_Guilds.Values.FirstOrDefault(x => x.MemberList.Any(m => m.CharacterId == p.CharacterId));
+            var id = found?.GuildId ?? 0;
+            if (p.P.GuildId != id) { p.P.GuildId = id; p.Dirty = true; }
+            return found;
         }
 
         static string GuildName(Profile p) => GuildOf(p)?.GuildName ?? "";
@@ -98,14 +102,14 @@ namespace Unity.BossRoom.Gameplay.Showcase
             if (target == null) { Toast(p, "접속 중인 캐릭터만 초대할 수 있습니다", true); return; }
             if (GuildOf(target) != null) { Toast(p, $"{target.Name} 님은 이미 길드에 있습니다", true); return; }
             s_Invites.RemoveAll(i => i.kind == "guild" && i.to == target.ClientId);
-            s_Invites.Add(("guild", p.ClientId, target.ClientId));
+            s_Invites.Add(("guild", p.ClientId, p.Name, target.ClientId));
             ShowcaseNet.ToClient(target.ClientId, "invite", new Invite { Kind = "guild", From = p.Name, Text = $"{p.Name} 님이 길드 「{g.GuildName}」에 초대했습니다" });
             Toast(p, $"{target.Name} 님을 길드에 초대했습니다");
         }
 
         static async Task GuildAnswer(Profile p, string fromName, bool accept)
         {
-            var invite = s_Invites.FirstOrDefault(i => i.kind == "guild" && i.to == p.ClientId && Of(i.from)?.Name == fromName);
+            var invite = s_Invites.FirstOrDefault(i => i.kind == "guild" && i.to == p.ClientId && i.fromName == fromName);
             if (invite.kind == null) return;
             s_Invites.Remove(invite);
             var from = Of(invite.from);

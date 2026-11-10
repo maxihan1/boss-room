@@ -62,6 +62,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 nm.OnConnectionEvent += OnConnection;
                 RegisterHandlers();
                 Ticker.Ensure();
+                // 첫 접속자를 불러오기 전에 길드 · 친구 · 이름 지도를 읽어 둔다
+                if (GameApi.Enabled) { s_SocialLoaded = true; _ = LoadSocial(); }
             };
         }
 
