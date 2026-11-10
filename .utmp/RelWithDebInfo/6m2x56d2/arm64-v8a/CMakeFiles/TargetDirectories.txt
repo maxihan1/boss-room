@@ -1,0 +1,5 @@
+/Users/maxi.moff/Projects/boss-room/.utmp/RelWithDebInfo/6m2x56d2/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/maxi.moff/Projects/boss-room/.utmp/RelWithDebInfo/6m2x56d2/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/maxi.moff/Projects/boss-room/.utmp/RelWithDebInfo/6m2x56d2/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
+/Users/maxi.moff/Projects/boss-room/.utmp/RelWithDebInfo/6m2x56d2/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
+/Users/maxi.moff/Projects/boss-room/.utmp/RelWithDebInfo/6m2x56d2/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir

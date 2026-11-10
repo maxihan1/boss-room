@@ -170,6 +170,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         public static void Push(Profile p)
         {
+            ResetDailyIfNeeded(p);
             var v = new ProfileView
             {
                 Name = p.Name, Level = p.Data.CharacterLevel, Exp = p.P.Exp, ExpNext = GameData.ExpToNext(p.Data.CharacterLevel), Gold = p.Gold,

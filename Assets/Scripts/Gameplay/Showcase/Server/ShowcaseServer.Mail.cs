@@ -102,8 +102,13 @@ namespace Unity.BossRoom.Gameplay.Showcase
             var ids = m.mail.AttachmentSlots.SelectMany(s => s.ItemInstanceIds).ToList();
             await EnsureItems(ids);
             var gold = m.mail.CurrencyAmount;
+            // 아이템 표에서 못 찾은 첨부는 잃지 않게 우편에 남긴다
+            var missing = ids.Where(id => !s_Items.ContainsKey(id)).ToList();
+            ids = ids.Where(s_Items.ContainsKey).ToList();
+            if (ids.Count == 0 && gold == 0) { Toast(p, "첨부 정보를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요", true); return; }
             // 먼저 우편을 비워 저장한다 — 저장이 실패하면 아무것도 주지 않는다(두 번 받기 막기)
             m.mail.AttachmentSlots.Clear();
+            if (missing.Count > 0) m.mail.AttachmentSlots.Add(new MailAttachmentSlot { ItemInstanceIds = missing });
             m.mail.CurrencyAmount = 0;
             m.mail.IsRead = true;
             var saved = await GameApi.Post("/api/savemailmessage", new SaveDataRequest { Id = m.row.id, SaveData = JsonUtility.ToJson(m.mail) });

@@ -276,7 +276,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Choose your class:'
+  m_text: "직업을 선택하세요"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9641ce046d2227445b9684161a165f68, type: 2}
   m_sharedMaterial: {fileID: -4106257185398102161, guid: 9641ce046d2227445b9684161a165f68, type: 2}
@@ -727,7 +727,7 @@ MonoBehaviour:
   m_Skill3: {fileID: 5940892341571103604}
   m_ReadyButtonImage: {fileID: 5940892341148877036}
   m_Checkmark: {fileID: 5940892341683006018}
-  m_WelcomeMsg: Welcome, P{0}!
+  m_WelcomeMsg: "환영합니다, P{0}!"
   m_TooltipFormat: '<b>{0}</b>
 
 

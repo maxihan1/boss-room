@@ -481,7 +481,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7721113380232533813, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_text
-      value: Play Again
+      value: "다시 하기"
       objectReference: {fileID: 0}
     - target: {fileID: 7721113380319664578, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_Name
@@ -616,7 +616,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7721113380232533813, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_text
-      value: RETURN TO MENU
+      value: "메인 메뉴로"
       objectReference: {fileID: 0}
     - target: {fileID: 7721113380232533813, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_fontSize
@@ -840,7 +840,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7721113380232533813, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_text
-      value: "Waiting on Host \nto Play Again"
+      value: "잠시 뒤\n로비로 돌아갑니다"
       objectReference: {fileID: 0}
     - target: {fileID: 7721113380232533813, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_fontSize
