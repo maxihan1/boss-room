@@ -32,7 +32,7 @@ case "${1:-}" in
     # 창을 띄워 호스트로 혼자 던전까지 들어가며 장면마다 찍는다 — 결과 Builds/shots/<이름>
     BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
     OUT="$ROOT/Builds/shots/${2:-now}"; rm -rf "$OUT"
-    "$BIN" -screen-fullscreen 0 -screen-width 1280 -screen-height 720 -host -autoplay -seat "${SEAT:-0}" -shots "$OUT" -quitAfter "${QUIT_AFTER:-60}" -logFile "$ROOT/Builds/shots.log" || true
+    "$BIN" -screen-fullscreen 0 -screen-width 1280 -screen-height 720 -host -autoplay -uiTour -seat "${SEAT:-0}" -shots "$OUT" -quitAfter "${QUIT_AFTER:-60}" -logFile "$ROOT/Builds/shots.log" || true
     ls "$OUT"
     ;;
   login)
@@ -46,7 +46,7 @@ case "${1:-}" in
     SERVER=$!
     trap 'kill $SERVER 2>/dev/null || true' EXIT
     sleep 8
-    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass "$PASS" -quitAfter "${QUIT_AFTER:-15}" -logFile "$ROOT/Builds/t-client.log" > /dev/null 2>&1 || true
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass "$PASS" -quitAfter "${QUIT_AFTER:-15}" ${ACTIONS:+-actions "$ACTIONS"} -logFile "$ROOT/Builds/t-client.log" > /dev/null 2>&1 || true
     "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass wrong-pass -quitAfter 8 -logFile "$ROOT/Builds/t-client-bad.log" > /dev/null 2>&1 || true
     echo "== 서버"; grep -E "\[api\]|Exception" "$ROOT/Builds/t-server.log" | head -10
     echo "== 맞는 비밀번호"; grep -E "\[profile\]|\[toast\]|to ClientConnectedState" "$ROOT/Builds/t-client.log" | head

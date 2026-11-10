@@ -20,7 +20,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         public static LoginScreen Create()
         {
-            var canvas = UIKit.Canvas("Showcase Login", 20);
+            var canvas = UIKit.Canvas("Showcase Login", 100);
             var screen = canvas.gameObject.AddComponent<LoginScreen>();
             screen.Build(canvas.transform);
             return screen;

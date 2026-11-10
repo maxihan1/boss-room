@@ -6,7 +6,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
 {
     public static class ShowcaseDressing
     {
-        static readonly string[] k_Hidden = { "UnityLogo", "NetStatsMonitorPrefab", "NetStatsMonitor" };
+        static readonly string[] k_Hidden = { "UnityLogo", "NetStatsMonitorPrefab", "NetStatsMonitor", "NetworkOverlay" };
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Init()
@@ -19,6 +19,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
         {
             foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
+                // 접속 실패 같은 안내 창은 시연 화면(순서 100)보다 위에 떠야 한다
+                if (t.name.StartsWith("PopupPanelsCanvas") && t.TryGetComponent<Canvas>(out var popup)) popup.sortingOrder = 200;
                 foreach (var name in k_Hidden)
                 {
                     if (t.name.StartsWith(name)) t.gameObject.SetActive(false);

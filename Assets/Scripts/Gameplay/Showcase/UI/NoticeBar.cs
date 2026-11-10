@@ -17,7 +17,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
             // 띠를 숨겨도 다시 읽기가 멈추지 않게 컴포넌트는 늘 켜진 빈 틀에 둔다
             var holder = UIKit.Rect(canvas, "NoticeBar", new Vector2(0.5f, 1f), new Vector2(0, y), new Vector2(1240, 64));
             var bar = holder.gameObject.AddComponent<NoticeBar>();
-            bar.m_Bg = UIKit.Image(holder, "Bg", ShowcaseSkin.I.Soft, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            bar.m_Bg = UIKit.Image(holder, "Bg", null, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIKit.Stretch(bar.m_Bg.rectTransform);
             bar.m_Text = UIKit.Text(bar.m_Bg.transform, "", 28, UIKit.Cream, TextAlignmentOptions.Center);
             bar.m_Text.textWrappingMode = TextWrappingModes.NoWrap;

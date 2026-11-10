@@ -55,7 +55,7 @@ namespace Unity.BossRoom.Gameplay.UI
 
         void OnDoorStateChangedEvent(DoorStateChangedEventMessage eventMessage)
         {
-            DisplayMessage(eventMessage.IsDoorOpen ? "The Door has been opened!" : "The Door is closing.");
+            DisplayMessage(eventMessage.IsDoorOpen ? "문이 열렸습니다!" : "문이 닫힙니다");
         }
 
         void OnConnectionEvent(ConnectionEventMessage eventMessage)
@@ -63,7 +63,7 @@ namespace Unity.BossRoom.Gameplay.UI
             switch (eventMessage.ConnectStatus)
             {
                 case ConnectStatus.Success:
-                    DisplayMessage($"{eventMessage.PlayerName} has joined the game!");
+                    DisplayMessage($"{eventMessage.PlayerName} 님이 입장했습니다");
                     break;
                 case ConnectStatus.ServerFull:
                 case ConnectStatus.LoggedInAgain:
@@ -71,7 +71,7 @@ namespace Unity.BossRoom.Gameplay.UI
                 case ConnectStatus.GenericDisconnect:
                 case ConnectStatus.IncompatibleBuildType:
                 case ConnectStatus.HostEndedSession:
-                    DisplayMessage($"{eventMessage.PlayerName} has left the game!");
+                    DisplayMessage($"{eventMessage.PlayerName} 님이 나갔습니다");
                     break;
             }
         }
@@ -88,11 +88,11 @@ namespace Unity.BossRoom.Gameplay.UI
                     switch (eventMessage.NewLifeState)
                     {
                         case LifeState.Alive:
-                            DisplayMessage($"{eventMessage.CharacterName} has been reanimated!");
+                            DisplayMessage($"{eventMessage.CharacterName} 님이 부활했습니다!");
                             break;
                         case LifeState.Fainted:
                         case LifeState.Dead:
-                            DisplayMessage($"{eventMessage.CharacterName} has been defeated!");
+                            DisplayMessage($"{eventMessage.CharacterName} 님이 쓰러졌습니다!");
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();

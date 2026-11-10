@@ -112,12 +112,14 @@ namespace Unity.BossRoom.ApplicationLifecycle
                 StartCoroutine(AfterFirstFrame(() => m_ConnectionManager.StartServerIp("0.0.0.0", port)));
                 return;
             }
+            if (ArgValue("-actions") != null) Unity.BossRoom.Gameplay.Showcase.ClientScript.Run(ArgValue("-actions"));
             if (HasArg("-autoplay") || ArgValue("-shots") != null)
             {
                 var pilot = new GameObject("ShowcaseAutopilot").AddComponent<ShowcaseAutopilot>();
                 pilot.AutoPlay = HasArg("-autoplay");
                 pilot.Seat = int.TryParse(ArgValue("-seat"), out var seat) ? seat : 0;
                 pilot.ShotDir = ArgValue("-shots");
+                pilot.UiTour = HasArg("-uiTour");
             }
             if (float.TryParse(ArgValue("-quitAfter"), out var quitAfter))
             {

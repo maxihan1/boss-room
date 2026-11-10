@@ -17,6 +17,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
             ShowcaseNet.OnServer("sell", (id, json) => With(id, json, Sell));
             ShowcaseNet.OnServer("buy", (id, json) => With(id, json, Buy));
             ShowcaseNet.OnServer("potion", (id, json) => With(id, json, (p, _) => UsePotion(p)));
+            // 로컬 호스트 시험용 — 전용 서버(운영)에서는 받지 않는다
+            ShowcaseNet.OnServer("cheat_kill", (id, json) => Cheat(id, boss: false));
+            ShowcaseNet.OnServer("cheat_boss", (id, json) => Cheat(id, boss: true));
             RegisterProgressHandlers();
             RegisterMailHandlers();
             RegisterSocialHandlers();
@@ -78,8 +81,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             if (p.Gold < def.Price * count) { Toast(p, "골드가 부족합니다", true); return; }
             p.Gold -= def.Price * count;
             AddItem(p, def.Name, count);
-            AddQuest(p, "daily_shop", 1);
             Toast(p, $"{def.Name} {count}개 구매");
+            AddQuest(p, "daily_shop", 1);
         }
 
         static void UsePotion(Profile p)
@@ -102,6 +105,18 @@ namespace Unity.BossRoom.Gameplay.Showcase
             if (inflicter != null && !inflicter.IsNpc && Of(inflicter.OwnerClientId) is { } a) hp = Mathf.RoundToInt(hp * a.AttackMult);
             if (target != null && !target.IsNpc && Of(target.OwnerClientId) is { } d) hp = Mathf.Min(-1, Mathf.RoundToInt(hp * (1 - d.Defense)));
             return hp;
+        }
+
+        static void Cheat(ulong clientId, bool boss)
+        {
+            if (!Unity.Netcode.NetworkManager.Singleton.IsHost) return;
+            var hero = PlayerServerCharacter.GetPlayerServerCharacter(clientId);
+            foreach (var npc in Object.FindObjectsByType<ServerCharacter>(FindObjectsSortMode.None))
+            {
+                if (!npc.IsNpc || npc.LifeState != LifeState.Alive) continue;
+                if ((npc.CharacterType == CharacterTypeEnum.ImpBoss) != boss) continue;
+                if (npc.TryGetComponent<IDamageable>(out var target)) target.ReceiveHitPoints(hero, -99999);
+            }
         }
 
         [System.Serializable] class DeleteItemRequest { public long ItemInstanceId; }

@@ -125,7 +125,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
             p.P.Started = true;
             p.Data.CharacterName = p.Name;
             p.Gold = Math.Max(p.Gold, 200);
-            AddItem(p, "체력 물약", 3, log: false);
+            AddItem(p, "체력 물약", 3);
         }
 
         static void Normalize(Profile p)
