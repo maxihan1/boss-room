@@ -394,7 +394,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: SKILL 1
+  m_Text: "스킬 1"
 --- !u!1 &9059929380243764538
 GameObject:
   m_ObjectHideFlags: 0
@@ -613,7 +613,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: SKILL 2
+  m_Text: "스킬 2"
 --- !u!1 &9059929380544550686
 GameObject:
   m_ObjectHideFlags: 0
@@ -832,7 +832,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: ATTACK
+  m_Text: "공격"
 --- !u!1 &9059929381413149714
 GameObject:
   m_ObjectHideFlags: 0
@@ -1314,4 +1314,4 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: EMOTE!
+  m_Text: "감정"

@@ -24,7 +24,11 @@ public static class ShowcaseSetup
             var fa = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AssetDatabase.GUIDToAssetPath(guid));
             if (fa == null || fa == body || fa == title) continue;
             fa.fallbackFontAssetTable ??= new System.Collections.Generic.List<TMP_FontAsset>();
-            if (!fa.fallbackFontAssetTable.Contains(body)) { fa.fallbackFontAssetTable.Add(body); EditorUtility.SetDirty(fa); }
+            // 굵은 제목 글꼴(Bungee)에는 한글 제목 글꼴을, 본문 글꼴에는 한글 본문 글꼴을 대체로 건다
+            var korean = fa.name.StartsWith("Bungee") ? title : body;
+            fa.fallbackFontAssetTable.RemoveAll(f => f == body || f == title);
+            fa.fallbackFontAssetTable.Insert(0, korean);
+            EditorUtility.SetDirty(fa);
         }
 
         var skin = AssetDatabase.LoadAssetAtPath<ShowcaseSkin>(SkinPath);

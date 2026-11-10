@@ -38,7 +38,7 @@ namespace Unity.BossRoom.Gameplay.UI
         [SerializeField]
         [Tooltip("Message shown in the char-select screen. {0} will be replaced with the player's seat number")]
         [Multiline]
-        private string m_WelcomeMsg = "Welcome, P{0}!";
+        private string m_WelcomeMsg = "환영합니다, P{0}!";
         [SerializeField]
         [Tooltip("Format of tooltips. {0} is skill name, {1} is skill description. Html-esque tags allowed!")]
         [Multiline]

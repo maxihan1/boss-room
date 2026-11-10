@@ -126,10 +126,27 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         void ShowToast(Toast t)
         {
+            // 레벨 업 · 보스 처치는 화면 가운데 큰 금색 글씨로도 알린다
+            if (!t.Error && (t.Text.StartsWith("레벨 업") || t.Text.StartsWith("보스 처치"))) StartCoroutine(Banner(t.Text.Split('!')[0] + "!"));
             var bg = UIKit.Image(m_Toasts, "Toast", null, t.Error ? new Color(0.45f, 0.05f, 0.05f, 0.85f) : new Color(0f, 0f, 0f, 0.7f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(820, 60));
             UIKit.Text(bg.transform, t.Text, 28, t.Error ? new Color(1f, 0.85f, 0.8f) : UIKit.Cream, TextAlignmentOptions.Center);
             while (m_Toasts.childCount > 4) DestroyImmediate(m_Toasts.GetChild(0).gameObject);
             StartCoroutine(Fade(bg.gameObject));
+        }
+
+        IEnumerator Banner(string text)
+        {
+            var label = UIKit.Label(CanvasRoot, text, 110, UIKit.Gold, new Vector2(0.5f, 0.5f), new Vector2(0, 160), new Vector2(1400, 160), TextAlignmentOptions.Center, title: true);
+            label.outlineWidth = 0.2f;
+            label.outlineColor = new Color32(70, 30, 0, 255);
+            var rt = (RectTransform)label.transform.parent;
+            for (var t = 0f; t < 2.2f && label != null; t += Time.unscaledDeltaTime)
+            {
+                rt.localScale = Vector3.one * (t < 0.2f ? 0.6f + t * 2.2f : 1.04f - Mathf.Min(0.04f, (t - 0.2f) * 0.1f));
+                label.alpha = t < 1.6f ? 1f : 1f - (t - 1.6f) / 0.6f;
+                yield return null;
+            }
+            if (rt != null) Destroy(rt.gameObject);
         }
 
         static IEnumerator Fade(GameObject go)

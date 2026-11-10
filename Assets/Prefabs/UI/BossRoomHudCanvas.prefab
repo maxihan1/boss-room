@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Hero Actions
+  m_text: "스킬"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9641ce046d2227445b9684161a165f68, type: 2}
   m_sharedMaterial: {fileID: -4106257185398102161, guid: 9641ce046d2227445b9684161a165f68, type: 2}
@@ -276,7 +276,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Try to defeat the boss!
+  m_text: "보스를 쓰러뜨리세요!"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1a8c97d4cbe5134499b26527f8609c7e, type: 2}
   m_sharedMaterial: {fileID: -466885322316925189, guid: 1a8c97d4cbe5134499b26527f8609c7e, type: 2}
@@ -785,7 +785,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Move / Target
+  m_text: "이동 · 대상"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9641ce046d2227445b9684161a165f68, type: 2}
   m_sharedMaterial: {fileID: -4106257185398102161, guid: 9641ce046d2227445b9684161a165f68, type: 2}
@@ -921,7 +921,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Zoom
+  m_text: "확대"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9641ce046d2227445b9684161a165f68, type: 2}
   m_sharedMaterial: {fileID: -4106257185398102161, guid: 9641ce046d2227445b9684161a165f68, type: 2}
@@ -1193,7 +1193,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Primary Attack
+  m_text: "기본 공격"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9641ce046d2227445b9684161a165f68, type: 2}
   m_sharedMaterial: {fileID: -4106257185398102161, guid: 9641ce046d2227445b9684161a165f68, type: 2}
@@ -1868,7 +1868,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: OK
+  m_text: "확인"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1a8c97d4cbe5134499b26527f8609c7e, type: 2}
   m_sharedMaterial: {fileID: -466885322316925189, guid: 1a8c97d4cbe5134499b26527f8609c7e, type: 2}

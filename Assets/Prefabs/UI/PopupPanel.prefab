@@ -389,7 +389,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7721113380232533813, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_text
-      value: OK
+      value: "확인"
       objectReference: {fileID: 0}
     - target: {fileID: 7721113380319664578, guid: addf3685293c35d48a673397c748f116, type: 3}
       propertyPath: m_Name

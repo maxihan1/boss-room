@@ -190,8 +190,7 @@ namespace Unity.BossRoom.Gameplay.GameState
         void UpdatePlayerCount()
         {
             int count = m_NetworkCharSelection.sessionPlayers.Count;
-            var pstr = (count > 1) ? "players" : "player";
-            m_NumPlayersText.text = "<b>" + count + "</b> " + pstr + " connected";
+            m_NumPlayersText.text = "<b>" + count + "</b>명 접속 중";
         }
 
         /// <summary>
@@ -390,12 +389,12 @@ namespace Unity.BossRoom.Gameplay.GameState
                         m_ClassInfoBox.ConfigureForNoSelection();
                     }
 
-                    m_ReadyButtonText.text = "READY!";
+                    m_ReadyButtonText.text = "준비!";
                     break;
                 case SessionMode.SeatChosen:
                     isSeatsDisabledInThisMode = true;
                     m_ClassInfoBox.SetLockedIn(true);
-                    m_ReadyButtonText.text = "UNREADY";
+                    m_ReadyButtonText.text = "준비 취소";
                     break;
                 case SessionMode.FatalError:
                     isSeatsDisabledInThisMode = true;
