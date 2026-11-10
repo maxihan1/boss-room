@@ -70,7 +70,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
             m_MenuItems.Add(("가방", InventoryWindow.Toggle));
             m_MenuItems.Add(("상점", ShopWindow.Toggle));
             m_MenuItems.Add(("퀘스트", QuestWindow.Toggle));
-            m_MenuItems.AddRange(ExtraMenu);
+            // 창마다 메뉴에 붙는 차례가 실행마다 달라 이름으로 고정한다
+            string[] order = { "우편", "친구", "길드" };
+            m_MenuItems.AddRange(ExtraMenu.OrderBy(m => System.Array.IndexOf(order, m.label) is var i && i < 0 ? 99 : i));
             for (var i = 0; i < m_MenuItems.Count; i++)
             {
                 var item = m_MenuItems[i];
@@ -103,10 +105,11 @@ namespace Unity.BossRoom.Gameplay.Showcase
             m_Notice.SetActive(!dungeon);
             m_Menu.anchorMin = m_Menu.anchorMax = dungeon ? new Vector2(1f, 0.5f) : new Vector2(0f, 0.5f);
             m_Menu.anchoredPosition = dungeon ? new Vector2(-100, 60) : new Vector2(130, 30);
-            m_Menu.localScale = Vector3.one * (dungeon ? 0.75f : 1f);
+            m_Menu.localScale = Vector3.one * (dungeon ? 0.75f : 0.9f);
             m_PotionButton.gameObject.SetActive(dungeon);
             // 로비는 아래쪽에 영웅 자리 카드가 있어 그 위에, 던전은 왼쪽 아래 구석
-            m_Chat.anchoredPosition = dungeon ? new Vector2(370, 70) : new Vector2(370, 330);
+            m_Chat.anchorMin = m_Chat.anchorMax = dungeon ? new Vector2(0f, 0f) : new Vector2(1f, 0f);
+            m_Chat.anchoredPosition = dungeon ? new Vector2(370, 70) : new Vector2(-370, 330);
         }
 
         void Render(ProfileView p)

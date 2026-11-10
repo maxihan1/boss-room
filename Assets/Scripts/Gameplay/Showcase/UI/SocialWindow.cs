@@ -14,12 +14,12 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         public static void Toggle(Transform canvas)
         {
-            var w = Open<SocialWindow>(canvas, "친구 · 파티", new Vector2(1200, 860));
+            var w = Open<SocialWindow>(canvas, "친구 · 파티", new Vector2(1200, 800));
             if (w == null) return;
             w.m_Name = UIKit.Input(w.Body, "캐릭터 이름", new Vector2(0f, 1f), new Vector2(330, -116), new Vector2(520, 76));
             UIKit.Button(w.Body, "친구 신청", new Vector2(0f, 1f), new Vector2(720, -116), new Vector2(220, 76), () => w.SendName("friend_add"), 26);
             UIKit.Button(w.Body, "파티 초대", new Vector2(0f, 1f), new Vector2(960, -116), new Vector2(220, 76), () => w.SendName("party_invite"), 26);
-            w.m_List = UIKit.ScrollList(w.Body, new Vector2(0.5f, 1f), new Vector2(0, -470), new Vector2(1080, 560));
+            w.m_List = UIKit.ScrollList(w.Body, new Vector2(0.5f, 1f), new Vector2(0, -450), new Vector2(1080, 520));
             SocialState.Changed += w.Draw;
             w.Draw(SocialState.Last);
             ShowcaseClient.Send("social");
