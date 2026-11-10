@@ -20,6 +20,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
         RectTransform m_Bar, m_Menu, m_Toasts, m_PotionButton;
         GameObject m_Notice;
         readonly List<(string label, System.Action<Transform> open)> m_MenuItems = new();
+        readonly Dictionary<string, TextMeshProUGUI> m_MenuLabels = new();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Init()
@@ -73,7 +74,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             for (var i = 0; i < m_MenuItems.Count; i++)
             {
                 var item = m_MenuItems[i];
-                UIKit.Button(m_Menu, item.label, new Vector2(0.5f, 1f), new Vector2(0, -50 - i * 92), new Vector2(190, 80), () => item.open(CanvasRoot), 30);
+                var b = UIKit.Button(m_Menu, item.label, new Vector2(0.5f, 1f), new Vector2(0, -50 - i * 92), new Vector2(190, 80), () => item.open(CanvasRoot), 30);
+                m_MenuLabels[item.label] = b.GetComponentInChildren<TextMeshProUGUI>();
             }
 
             m_PotionButton = UIKit.Button(root, "", new Vector2(1f, 0f), new Vector2(-760, 100), new Vector2(190, 90), () => ShowcaseClient.Send("potion"), 28).GetComponent<RectTransform>();
@@ -109,6 +111,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             m_Exp.fillAmount = p.ExpNext > 0 ? Mathf.Clamp01((float)p.Exp / p.ExpNext) : 1f;
             m_ExpText.text = p.ExpNext > 0 ? $"{p.Exp}/{p.ExpNext}" : "최고 레벨";
             m_Gold.text = $"{UIKit.Number(p.Gold)} G";
+            // 안 받은 우편 수를 버튼에 붙인다
+            if (m_MenuLabels.TryGetValue("우편", out var mail)) mail.text = p.UnreadMail > 0 ? $"우편 <color=#FF6B5B>{p.UnreadMail}</color>" : "우편";
             var potions = p.Items.Count(i => i.Name == "체력 물약");
             m_Potion.text = $"물약 {potions}";
         }

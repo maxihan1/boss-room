@@ -106,6 +106,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 }
                 Normalize(profile);
                 profile.Loaded = true;
+                if (GameApi.Enabled && profile.CharacterId > 0) await RefreshMail(profile, announce: false);
                 profile.Dirty = true;
                 await AfterLoad(profile);
                 Push(profile);
@@ -149,6 +150,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         public static void Tick()
         {
+            PollMail();
             if (Time.unscaledTime < s_NextSave) return;
             s_NextSave = Time.unscaledTime + 10f;
             foreach (var p in Profiles.Values.Where(p => p.Loaded && p.Dirty).ToList()) _ = Persist(p);
