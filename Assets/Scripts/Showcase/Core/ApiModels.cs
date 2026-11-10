@@ -24,6 +24,13 @@ namespace Unity.BossRoom.Showcase
     [Serializable] public class ItemRow { public int id; public long itemInstanceId; public string saveData; }
     [Serializable] public class ItemList { public List<ItemRow> itemInstances = new List<ItemRow>(); }
 
+    [Serializable] public class GuildRow { public int id; public string name; public string saveData; }
+    [Serializable] public class GuildList { public List<GuildRow> guilds = new List<GuildRow>(); }
+    [Serializable] public class SaveDataOnly { public string SaveData; }
+    [Serializable] public class FriendRow { public int id; public int playerCharacterId; public string saveData; }
+    [Serializable] public class FriendLists { public List<FriendRow> friendLists = new List<FriendRow>(); }
+    [Serializable] public class SaveFriendListRequest { public int PlayerCharacterId; public string SaveData; }
+
     [Serializable] public class ServerStatus { public MaintenanceInfo maintenance = new MaintenanceInfo(); public List<NoticeInfo> notices = new List<NoticeInfo>(); public string serverTime; }
     [Serializable] public class MaintenanceInfo { public bool active; public string message; public string startsAt; public string endsAt; }
     [Serializable] public class NoticeInfo { public int id; public string title; public string body; public string startsAt; public string endsAt; }

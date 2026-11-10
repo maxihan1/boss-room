@@ -48,9 +48,30 @@ case "${1:-}" in
     sleep 8
     "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass "$PASS" -quitAfter "${QUIT_AFTER:-15}" ${ACTIONS:+-actions "$ACTIONS"} -logFile "$ROOT/Builds/t-client.log" > /dev/null 2>&1 || true
     "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass wrong-pass -quitAfter 8 -logFile "$ROOT/Builds/t-client-bad.log" > /dev/null 2>&1 || true
-    echo "== 서버"; grep -E "\[api\]|Exception" "$ROOT/Builds/t-server.log" | head -10
+    echo "== 서버"; grep -E "\[api\]|Exception" "$ROOT/Builds/t-server.log" | head -10 || true
     echo "== 맞는 비밀번호"; grep -E "\[profile\]|\[toast\]|to ClientConnectedState" "$ROOT/Builds/t-client.log" | head
     echo "== 틀린 비밀번호"; grep -E "Changed connection state" "$ROOT/Builds/t-client-bad.log" | head
+    ;;
+  social)
+    # 실제 게임 API 에 붙은 맥 서버 + 계정 둘이 친구 · 파티 · 길드 · 채팅을 주고받는다
+    BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
+    CFG=${CFG:-$HOME/.config/anyrpg-test}
+    P1=$(grep "^qa_player1=" "$CFG/game-accounts.txt" | cut -d= -f2-)
+    P2=$(grep "^qa_player2=" "$CFG/game-accounts.txt" | cut -d= -f2-)
+    PORT=${PORT:-7792}
+    ( set -a; . "$CFG/game-server.env"; set +a; exec "$BIN" -batchmode -nographics -server -port "$PORT" -logFile "$ROOT/Builds/s-server.log" ) > /dev/null 2>&1 &
+    SERVER=$!
+    trap 'kill $SERVER 2>/dev/null || true' EXIT
+    sleep 8
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user qa_player1 -pass "$P1" -quitAfter 45 -logFile "$ROOT/Builds/s-p1.log" \
+      -actions "${A1:-wait:3;friend_add:qa_player2;wait:4;party_invite:qa_player2;wait:4;guild_create:보스헌터;wait:2;guild_invite:qa_player2;wait:5;say:안녕하세요;psay:파티 출발;gsay:길드 반가워요}" > /dev/null 2>&1 &
+    C1=$!
+    sleep 1
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user qa_player2 -pass "$P2" -quitAfter 44 -logFile "$ROOT/Builds/s-p2.log" \
+      -actions "${A2:-wait:5;friend_accept:qa_player1;wait:3;party_accept:qa_player1;wait:5;guild_accept:qa_player1;wait:4;say:반가워요}" > /dev/null 2>&1 || true
+    wait $C1 || true
+    echo "== 서버"; grep -E "\[api\]|Exception" "$ROOT/Builds/s-server.log" | head -8 || true
+    for n in p1 p2; do echo "== $n"; grep -E "\[toast\]|\[invite\]|\[script\] (소셜|끝)|\[chat\]" "$ROOT/Builds/s-$n.log" | head -25 || true; done
     ;;
   *) echo "쓰는 법: Tools/build.sh android|server|mac|smoke|shots [이름]" >&2; exit 2 ;;
 esac

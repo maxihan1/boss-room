@@ -151,6 +151,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
         public static void Tick()
         {
             PollMail();
+            PollRestrictions();
             if (Time.unscaledTime < s_NextSave) return;
             s_NextSave = Time.unscaledTime + 10f;
             foreach (var p in Profiles.Values.Where(p => p.Loaded && p.Dirty).ToList()) _ = Persist(p);

@@ -17,7 +17,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         TextMeshProUGUI m_Name, m_Gold, m_ExpText, m_Potion;
         Image m_Exp;
-        RectTransform m_Bar, m_Menu, m_Toasts, m_PotionButton;
+        RectTransform m_Bar, m_Menu, m_Toasts, m_PotionButton, m_Chat;
         GameObject m_Notice;
         readonly List<(string label, System.Action<Transform> open)> m_MenuItems = new();
         readonly Dictionary<string, TextMeshProUGUI> m_MenuLabels = new();
@@ -78,6 +78,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 m_MenuLabels[item.label] = b.GetComponentInChildren<TextMeshProUGUI>();
             }
 
+            m_Chat = ChatStrip.Create(root);
+
             m_PotionButton = UIKit.Button(root, "", new Vector2(1f, 0f), new Vector2(-760, 100), new Vector2(190, 90), () => ShowcaseClient.Send("potion"), 28).GetComponent<RectTransform>();
             m_Potion = m_PotionButton.GetComponentInChildren<TextMeshProUGUI>();
             m_Toasts = UIKit.Rect(root, "Toasts", new Vector2(0.5f, 1f), new Vector2(0, -260), new Vector2(900, 300));
@@ -103,6 +105,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             m_Menu.anchoredPosition = dungeon ? new Vector2(-100, 60) : new Vector2(130, 30);
             m_Menu.localScale = Vector3.one * (dungeon ? 0.75f : 1f);
             m_PotionButton.gameObject.SetActive(dungeon);
+            // 로비는 아래쪽에 영웅 자리 카드가 있어 그 위에, 던전은 왼쪽 아래 구석
+            m_Chat.anchoredPosition = dungeon ? new Vector2(370, 70) : new Vector2(370, 330);
         }
 
         void Render(ProfileView p)
