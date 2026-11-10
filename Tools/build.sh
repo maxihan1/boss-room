@@ -27,5 +27,12 @@ case "${1:-}" in
     grep -E "Changed connection state|\[smoke\]" "$ROOT/Builds/smoke-client.log"
     grep -q "to ClientConnectedState" "$ROOT/Builds/smoke-client.log" && grep -q "장면 CharSelect" "$ROOT/Builds/smoke-client.log" && echo "SMOKE OK" || { echo "SMOKE FAIL" >&2; exit 1; }
     ;;
-  *) echo "쓰는 법: Tools/build.sh android|server|mac|smoke" >&2; exit 2 ;;
+  shots)
+    # 창을 띄워 호스트로 혼자 던전까지 들어가며 장면마다 찍는다 — 결과 Builds/shots/<이름>
+    BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
+    OUT="$ROOT/Builds/shots/${2:-now}"; rm -rf "$OUT"
+    "$BIN" -screen-fullscreen 0 -screen-width 1280 -screen-height 720 -host -autoplay -seat "${SEAT:-0}" -shots "$OUT" -quitAfter "${QUIT_AFTER:-60}" -logFile "$ROOT/Builds/shots.log" || true
+    ls "$OUT"
+    ;;
+  *) echo "쓰는 법: Tools/build.sh android|server|mac|smoke|shots [이름]" >&2; exit 2 ;;
 esac

@@ -102,16 +102,28 @@ namespace Unity.BossRoom.ApplicationLifecycle
                 StartCoroutine(AfterFirstFrame(() => m_ConnectionManager.StartServerIp("0.0.0.0", port)));
                 return;
             }
+            if (HasArg("-autoplay") || ArgValue("-shots") != null)
+            {
+                var pilot = new GameObject("ShowcaseAutopilot").AddComponent<ShowcaseAutopilot>();
+                pilot.AutoPlay = HasArg("-autoplay");
+                pilot.Seat = int.TryParse(ArgValue("-seat"), out var seat) ? seat : 0;
+                pilot.ShotDir = ArgValue("-shots");
+            }
+            if (float.TryParse(ArgValue("-quitAfter"), out var quitAfter))
+            {
+                StartCoroutine(QuitAfter(quitAfter));
+            }
+            if (HasArg("-host"))
+            {
+                StartCoroutine(AfterFirstFrame(() => m_ConnectionManager.StartHostIp(ArgValue("-name") ?? "host", "127.0.0.1", port)));
+                return;
+            }
             var connect = ArgValue("-connect");
             if (connect != null)
             {
                 var hostPort = connect.Split(':');
                 var name = ArgValue("-name") ?? "bot";
                 StartCoroutine(AfterFirstFrame(() => m_ConnectionManager.StartClientIp(name, hostPort[0], hostPort.Length > 1 ? int.Parse(hostPort[1]) : port)));
-                if (float.TryParse(ArgValue("-quitAfter"), out var seconds))
-                {
-                    StartCoroutine(QuitAfter(seconds));
-                }
                 return;
             }
             SceneManager.LoadScene("MainMenu");
