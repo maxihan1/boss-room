@@ -174,6 +174,11 @@ namespace Unity.BossRoom.ConnectionManagement
             m_CurrentState.StartHostIP(playerName, ipaddress, port);
         }
 
+        public void StartServerIp(string ipaddress, int port)
+        {
+            m_CurrentState.StartServerIP(ipaddress, port);
+        }
+
         public void RequestShutdown()
         {
             m_CurrentState.OnUserRequestedShutdown();

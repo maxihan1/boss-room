@@ -93,7 +93,51 @@ namespace Unity.BossRoom.ApplicationLifecycle
             DontDestroyOnLoad(gameObject);
             DontDestroyOnLoad(m_UpdateRunner.gameObject);
             Application.targetFrameRate = 120;
+
+            // 시연 서버 · 화면 없는 시험 접속기는 메인 메뉴를 건너뛴다 — 명령줄 인자로 고른다
+            var port = int.TryParse(ArgValue("-port"), out var p) ? p : 7770;
+            if (HasArg("-server"))
+            {
+                Application.targetFrameRate = 30;
+                StartCoroutine(AfterFirstFrame(() => m_ConnectionManager.StartServerIp("0.0.0.0", port)));
+                return;
+            }
+            var connect = ArgValue("-connect");
+            if (connect != null)
+            {
+                var hostPort = connect.Split(':');
+                var name = ArgValue("-name") ?? "bot";
+                StartCoroutine(AfterFirstFrame(() => m_ConnectionManager.StartClientIp(name, hostPort[0], hostPort.Length > 1 ? int.Parse(hostPort[1]) : port)));
+                if (float.TryParse(ArgValue("-quitAfter"), out var seconds))
+                {
+                    StartCoroutine(QuitAfter(seconds));
+                }
+                return;
+            }
             SceneManager.LoadScene("MainMenu");
+        }
+
+        static bool HasArg(string name) => Array.IndexOf(Environment.GetCommandLineArgs(), name) >= 0;
+
+        static string ArgValue(string name)
+        {
+            var args = Environment.GetCommandLineArgs();
+            var i = Array.IndexOf(args, name);
+            return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+        }
+
+        // ConnectionManager.Start 가 콜백을 걸고 난 뒤에 부르려고 한 프레임 미룬다
+        static IEnumerator AfterFirstFrame(Action action)
+        {
+            yield return null;
+            action();
+        }
+
+        static IEnumerator QuitAfter(float seconds)
+        {
+            yield return new WaitForSecondsRealtime(seconds);
+            Debug.Log($"[smoke] {seconds}초 지나 끝냄 — 장면 {SceneManager.GetActiveScene().name}");
+            Application.Quit(0);
         }
 
         protected override void OnDestroy()

@@ -19,10 +19,12 @@ namespace Unity.BossRoom.ConnectionManagement
         [Inject]
         LocalSession m_LocalSession;
         ConnectionMethodBase m_ConnectionMethod;
+        bool m_ServerOnly;
 
-        public StartingHostState Configure(ConnectionMethodBase baseConnectionMethod)
+        public StartingHostState Configure(ConnectionMethodBase baseConnectionMethod, bool serverOnly = false)
         {
             m_ConnectionMethod = baseConnectionMethod;
+            m_ServerOnly = serverOnly;
             return this;
         }
 
@@ -73,7 +75,8 @@ namespace Unity.BossRoom.ConnectionManagement
                 if (m_ConnectionMethod is ConnectionMethodIP)
                 {
                     // NGO's StartHost launches everything
-                    if (!m_ConnectionManager.NetworkManager.StartHost())
+                    var started = m_ServerOnly ? m_ConnectionManager.NetworkManager.StartServer() : m_ConnectionManager.NetworkManager.StartHost();
+                    if (!started)
                     {
                         StartHostFailed();
                     }

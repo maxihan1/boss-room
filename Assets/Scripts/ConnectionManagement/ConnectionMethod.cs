@@ -99,6 +99,13 @@ namespace Unity.BossRoom.ConnectionManagement
         {
             SetConnectionPayload(GetPlayerId(), m_PlayerName);
             var utp = (UnityTransport)m_ConnectionManager.NetworkManager.NetworkConfig.NetworkTransport;
+            // 시연 서버는 NCP 가 UDP 를 막아 443 WebSocket 으로만 닿는다. 443 이면 Caddy 가 TLS 를 끝내므로 wss 로 붙는다
+            utp.UseWebSockets = true;
+            utp.UseEncryption = m_Port == 443;
+            if (utp.UseEncryption)
+            {
+                utp.SetClientSecrets(m_Ipaddress);
+            }
             utp.SetConnectionData(m_Ipaddress, m_Port);
         }
 
@@ -112,7 +119,10 @@ namespace Unity.BossRoom.ConnectionManagement
         {
             SetConnectionPayload(GetPlayerId(), m_PlayerName); // Need to set connection payload for host as well, as host is a client too
             var utp = (UnityTransport)m_ConnectionManager.NetworkManager.NetworkConfig.NetworkTransport;
-            utp.SetConnectionData(m_Ipaddress, m_Port);
+            // 서버는 TLS 없이 평문 WebSocket 으로 듣고, 앞의 Caddy 가 wss 를 풀어 넘긴다
+            utp.UseWebSockets = true;
+            utp.UseEncryption = false;
+            utp.SetConnectionData(m_Ipaddress, m_Port, "0.0.0.0");
         }
     }
 

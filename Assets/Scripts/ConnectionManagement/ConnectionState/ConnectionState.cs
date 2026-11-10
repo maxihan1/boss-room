@@ -34,6 +34,9 @@ namespace Unity.BossRoom.ConnectionManagement
 
         public virtual void StartHostSession(string playerName) { }
 
+        // 시연용 전용 서버 — 플레이어 없이 서버만 연다
+        public virtual void StartServerIP(string ipaddress, int port) { }
+
         public virtual void OnUserRequestedShutdown() { }
 
         public virtual void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response) { }
