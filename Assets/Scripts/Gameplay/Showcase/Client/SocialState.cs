@@ -28,6 +28,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 Last = JsonUtility.FromJson<SocialView>(json);
                 Changed?.Invoke(Last);
             });
+            // 다시 접속하면 앞 접속의 채팅 · 소셜이 남지 않게 비운다
+            var nm = Unity.Netcode.NetworkManager.Singleton;
+            if (nm != null) nm.OnClientStopped += _ => { Chat.Clear(); Last = new SocialView(); };
             ShowcaseNet.OnClient("invite", json =>
             {
                 var invite = JsonUtility.FromJson<Invite>(json);

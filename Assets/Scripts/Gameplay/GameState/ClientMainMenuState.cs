@@ -60,6 +60,8 @@ namespace Unity.BossRoom.Gameplay.GameState
                 button.gameObject.SetActive(false);
             }
             m_SignInSpinner.SetActive(false);
+            // 원래 IP 접속 창은 쓰지 않는다 — 꺼진 버튼의 색 바꾸기가 초기화 전에 불려 오류가 나던 것을 막는다
+            m_IPUIMediator.gameObject.SetActive(false);
             Showcase.LoginScreen.Create();
             return;
 
