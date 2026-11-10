@@ -8,9 +8,11 @@ namespace Unity.BossRoom.Showcase
         // 정지 사유 · 점검 문구처럼 거절 번호만으로는 모자란 설명
         public static string LastDetail = "";
         // 접속할 게임 서버 — 시연 서버는 443 wss
-        public static string ServerHost = "anyrpg.maxihan.com";
+        public static string ServerHost = "bossroom.maxihan.com";
         public static int ServerPort = 443;
+        // 시험용 — 명령줄 -tlsCa <pem 파일> 로 믿을 인증서를 바꾼다(맥에서 TLS 원문을 볼 때)
+        public static string TestCa;
         // 로그인 전 공지 · 점검을 읽는 공개 주소(인증 없음)
-        public static string ApiBase = "https://anyrpg-api.maxihan.com";
+        public static string ApiBase = "https://bossroom-api.maxihan.com";
     }
 }

@@ -39,6 +39,12 @@ namespace Unity.BossRoom.ConnectionManagement
 
         public static ConnectStatus Decode(string reason)
         {
+            // NGO 가 직접 넣는 사유(「Failed to connect to server.」 같은 평문)는 JSON 이 아니다
+            if (string.IsNullOrEmpty(reason) || reason[0] != '{')
+            {
+                Unity.BossRoom.Showcase.ShowcaseLogin.LastDetail = reason ?? "";
+                return ConnectStatus.StartClientFailed;
+            }
             var r = JsonUtility.FromJson<ConnectReason>(reason);
             Unity.BossRoom.Showcase.ShowcaseLogin.LastDetail = r?.detail ?? "";
             return r != null && r.status != ConnectStatus.Undefined ? r.status : JsonUtility.FromJson<ConnectStatus>(reason);

@@ -103,10 +103,10 @@ namespace Unity.BossRoom.ConnectionManagement
             var utp = (UnityTransport)m_ConnectionManager.NetworkManager.NetworkConfig.NetworkTransport;
             // 시연 서버는 NCP 가 UDP 를 막아 443 WebSocket 으로만 닿는다. 443 이면 Caddy 가 TLS 를 끝내므로 wss 로 붙는다
             utp.UseWebSockets = true;
-            utp.UseEncryption = m_Port == 443;
+            utp.UseEncryption = m_Port == 443 || Unity.BossRoom.Showcase.ShowcaseLogin.TestCa != null;
             if (utp.UseEncryption)
             {
-                utp.SetClientSecrets(m_Ipaddress);
+                utp.SetClientSecrets(m_Ipaddress, Unity.BossRoom.Showcase.ShowcaseLogin.TestCa ?? Unity.BossRoom.Showcase.TrustedRoots.LetsEncrypt);
             }
             utp.SetConnectionData(m_Ipaddress, m_Port);
         }

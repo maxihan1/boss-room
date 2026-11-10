@@ -106,6 +106,7 @@ namespace Unity.BossRoom.ApplicationLifecycle
             }
             Unity.BossRoom.Showcase.ShowcaseLogin.UserName = ArgValue("-user") ?? "";
             Unity.BossRoom.Showcase.ShowcaseLogin.Password = ArgValue("-pass") ?? "";
+            if (ArgValue("-tlsCa") is { } caFile) Unity.BossRoom.Showcase.ShowcaseLogin.TestCa = System.IO.File.ReadAllText(caFile);
             if (HasArg("-server"))
             {
                 Application.targetFrameRate = 30;
