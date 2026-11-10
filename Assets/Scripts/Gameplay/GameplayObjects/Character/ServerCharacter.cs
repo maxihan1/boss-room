@@ -320,6 +320,8 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
                 m_ServerActionPlayer.OnGameplayActivity(Action.GameplayActivity.AttackedByEnemy);
                 float damageMod = m_ServerActionPlayer.GetBuffedValue(Action.BuffableValue.PercentDamageReceived);
                 HP = (int)(HP * damageMod);
+                // 시연: 레벨 · 장비가 주는 공격 배율과 받는 피해 감소
+                HP = Showcase.ShowcaseServer.ModifyDamage(inflicter, this, HP);
 
                 serverAnimationHandler.NetworkAnimator.SetTrigger("HitReact1");
             }
@@ -341,6 +343,10 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
                     if (m_KilledDestroyDelaySeconds >= 0.0f && LifeState != LifeState.Dead)
                     {
                         StartCoroutine(KilledDestroyProcess());
+                    }
+                    if (LifeState != LifeState.Dead)
+                    {
+                        Showcase.ShowcaseServer.OnNpcKilled(this);
                     }
 
                     LifeState = LifeState.Dead;

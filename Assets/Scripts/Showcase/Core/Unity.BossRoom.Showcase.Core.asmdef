@@ -1,0 +1,6 @@
+{
+    "name": "Unity.BossRoom.Showcase.Core",
+    "rootNamespace": "Unity.BossRoom.Showcase",
+    "references": [],
+    "autoReferenced": true
+}

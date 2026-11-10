@@ -53,7 +53,9 @@ namespace Unity.BossRoom.ConnectionManagement
             {
                 playerId = playerId,
                 playerName = playerName,
-                isDebug = Debug.isDebugBuild
+                isDebug = Debug.isDebugBuild,
+                userName = Unity.BossRoom.Showcase.ShowcaseLogin.UserName,
+                password = Unity.BossRoom.Showcase.ShowcaseLogin.Password
             });
 
             var payloadBytes = System.Text.Encoding.UTF8.GetBytes(payload);

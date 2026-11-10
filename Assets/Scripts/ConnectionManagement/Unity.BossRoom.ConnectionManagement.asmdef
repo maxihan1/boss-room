@@ -11,7 +11,8 @@
         "Unity.BossRoom.Utils",
         "Unity.Networking.Transport",
         "VContainer",
-        "Unity.Services.Multiplayer"
+        "Unity.Services.Multiplayer",
+        "Unity.BossRoom.Showcase.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

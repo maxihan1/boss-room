@@ -54,6 +54,15 @@ namespace Unity.BossRoom.Gameplay.GameState
             m_SessionButton.interactable = false;
             m_SessionUIMediator.Hide();
 
+            // 시연판은 Unity 세션 · 직접 IP · 프로필 버튼 대신 계정 로그인 창 하나만 둔다
+            foreach (var button in m_SessionButton.transform.parent.GetComponentsInChildren<Button>(true))
+            {
+                button.gameObject.SetActive(false);
+            }
+            m_SignInSpinner.SetActive(false);
+            Showcase.LoginScreen.Create();
+            return;
+
             if (string.IsNullOrEmpty(Application.cloudProjectId))
             {
                 OnSignInFailed();

@@ -12,6 +12,7 @@ case "${1:-}" in
   android) unity Android ShowcaseBuild.Android android; ls -lh "$ROOT/Builds/android/bossroom.apk" ;;
   server)  unity Linux64 ShowcaseBuild.LinuxServer linux-server; ls -lh "$ROOT/Builds/linux-server/BossRoomServer.x86_64" ;;
   mac)     unity OSXUniversal ShowcaseBuild.MacSmoke mac ;;
+  setup)   unity OSXUniversal ShowcaseSetup.Run setup; grep -E "\[setup\]|error CS" "$ROOT/Builds/setup.log" ;;
   smoke)
     # 서버를 띄우고 접속기가 붙어 CharSelect 까지 가는지 본다
     BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
@@ -33,6 +34,23 @@ case "${1:-}" in
     OUT="$ROOT/Builds/shots/${2:-now}"; rm -rf "$OUT"
     "$BIN" -screen-fullscreen 0 -screen-width 1280 -screen-height 720 -host -autoplay -seat "${SEAT:-0}" -shots "$OUT" -quitAfter "${QUIT_AFTER:-60}" -logFile "$ROOT/Builds/shots.log" || true
     ls "$OUT"
+    ;;
+  login)
+    # 실제 게임 API 에 붙은 맥 서버 + 화면 없는 접속기 둘(맞는 · 틀린 비밀번호) — 비밀은 ~/.config/anyrpg-test 에서 읽는다
+    BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
+    CFG=${CFG:-$HOME/.config/anyrpg-test}
+    USER_ID=${USER_ID:-qa_player1}
+    PASS=$(grep "^$USER_ID=" "$CFG/game-accounts.txt" | cut -d= -f2-)
+    PORT=${PORT:-7791}
+    ( set -a; . "$CFG/game-server.env"; set +a; exec "$BIN" -batchmode -nographics -server -port "$PORT" -logFile "$ROOT/Builds/t-server.log" ) > /dev/null 2>&1 &
+    SERVER=$!
+    trap 'kill $SERVER 2>/dev/null || true' EXIT
+    sleep 8
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass "$PASS" -quitAfter "${QUIT_AFTER:-15}" -logFile "$ROOT/Builds/t-client.log" > /dev/null 2>&1 || true
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass wrong-pass -quitAfter 8 -logFile "$ROOT/Builds/t-client-bad.log" > /dev/null 2>&1 || true
+    echo "== 서버"; grep -E "\[api\]|Exception" "$ROOT/Builds/t-server.log" | head -10
+    echo "== 맞는 비밀번호"; grep -E "\[profile\]|\[toast\]|to ClientConnectedState" "$ROOT/Builds/t-client.log" | head
+    echo "== 틀린 비밀번호"; grep -E "Changed connection state" "$ROOT/Builds/t-client-bad.log" | head
     ;;
   *) echo "쓰는 법: Tools/build.sh android|server|mac|smoke|shots [이름]" >&2; exit 2 ;;
 esac

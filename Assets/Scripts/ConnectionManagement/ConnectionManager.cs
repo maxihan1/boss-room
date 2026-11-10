@@ -20,7 +20,29 @@ namespace Unity.BossRoom.ConnectionManagement
         IncompatibleBuildType,    //client build type is incompatible with server.
         HostEndedSession,         //host intentionally ended the session.
         StartHostFailed,          // server failed to bind
-        StartClientFailed         // failed to connect to server and/or invalid network endpoint
+        StartClientFailed,        // failed to connect to server and/or invalid network endpoint
+        LoginFailed,              // 아이디나 비밀번호가 틀림
+        AccountSuspended,         // 운영툴에서 정지한 계정
+        ServerMaintenance,        // 점검 중
+        ServerError               // 게임 API 를 부르다 실패
+    }
+
+    // 거절 사유를 「번호 + 설명」으로 주고받는다 — 옛 꼴(번호만)도 읽는다
+    [Serializable]
+    public class ConnectReason
+    {
+        public ConnectStatus status;
+        public string detail;
+
+        public static string Encode(ConnectStatus status, string detail = "") =>
+            JsonUtility.ToJson(new ConnectReason { status = status, detail = detail ?? "" });
+
+        public static ConnectStatus Decode(string reason)
+        {
+            var r = JsonUtility.FromJson<ConnectReason>(reason);
+            Unity.BossRoom.Showcase.ShowcaseLogin.LastDetail = r?.detail ?? "";
+            return r != null && r.status != ConnectStatus.Undefined ? r.status : JsonUtility.FromJson<ConnectStatus>(reason);
+        }
     }
 
     public struct ReconnectMessage
@@ -47,6 +69,8 @@ namespace Unity.BossRoom.ConnectionManagement
         public string playerId;
         public string playerName;
         public bool isDebug;
+        public string userName;
+        public string password;
     }
 
     /// <summary>

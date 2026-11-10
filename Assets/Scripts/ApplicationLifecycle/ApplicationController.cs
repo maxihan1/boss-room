@@ -96,6 +96,16 @@ namespace Unity.BossRoom.ApplicationLifecycle
 
             // 시연 서버 · 화면 없는 시험 접속기는 메인 메뉴를 건너뛴다 — 명령줄 인자로 고른다
             var port = int.TryParse(ArgValue("-port"), out var p) ? p : 7770;
+            // 로컬 시험용 — 접속할 게임 서버와 계정을 명령줄로 덮어쓴다
+            var gameServer = ArgValue("-gameServer");
+            if (gameServer != null)
+            {
+                var hp = gameServer.Split(':');
+                Unity.BossRoom.Showcase.ShowcaseLogin.ServerHost = hp[0];
+                Unity.BossRoom.Showcase.ShowcaseLogin.ServerPort = hp.Length > 1 ? int.Parse(hp[1]) : 443;
+            }
+            Unity.BossRoom.Showcase.ShowcaseLogin.UserName = ArgValue("-user") ?? "";
+            Unity.BossRoom.Showcase.ShowcaseLogin.Password = ArgValue("-pass") ?? "";
             if (HasArg("-server"))
             {
                 Application.targetFrameRate = 30;

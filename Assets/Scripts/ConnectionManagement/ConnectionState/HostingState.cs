@@ -3,6 +3,7 @@ using Unity.BossRoom.Infrastructure;
 using Unity.BossRoom.UnityServices.Sessions;
 using Unity.Multiplayer.Samples.BossRoom;
 using Unity.Multiplayer.Samples.Utilities;
+using Unity.BossRoom.Showcase;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -122,6 +123,15 @@ namespace Unity.BossRoom.ConnectionManagement
 
             var payload = System.Text.Encoding.UTF8.GetString(connectionData);
             var connectionPayload = JsonUtility.FromJson<ConnectionPayload>(payload); // https://docs.unity3d.com/2020.2/Documentation/Manual/JSONSerialization.html
+
+            // 전용 서버는 게임 API 로 아이디 · 비밀번호를 확인한 뒤에 들인다(정지 · 점검이면 사유와 함께 돌려보낸다)
+            if (GameApi.Enabled)
+            {
+                response.Pending = true;
+                ApproveWithLogin(clientId, connectionPayload, response);
+                return;
+            }
+
             var gameReturnStatus = GetConnectStatus(connectionPayload);
 
             if (gameReturnStatus == ConnectStatus.Success)
@@ -143,6 +153,59 @@ namespace Unity.BossRoom.ConnectionManagement
             {
                 m_MultiplayerServicesFacade.RemovePlayerFromSessionAsync(connectionPayload.playerId);
             }
+        }
+
+        async void ApproveWithLogin(ulong clientId, ConnectionPayload payload, NetworkManager.ConnectionApprovalResponse response)
+        {
+            try
+            {
+                if (m_ConnectionManager.NetworkManager.ConnectedClientsIds.Count >= m_ConnectionManager.MaxConnectedPlayers)
+                {
+                    Deny(response, ConnectStatus.ServerFull);
+                    return;
+                }
+                var res = await GameApi.Post("/api/login", new LoginRequest { UserName = payload.userName, Password = payload.password }, auth: false);
+                if (res.Code == 403 || res.Code == 503)
+                {
+                    var denied = JsonUtility.FromJson<LoginDenied>(res.Text);
+                    var until = string.IsNullOrEmpty(denied?.until) ? "" : $"\n종료 예정: {denied.until.Replace('T', ' ').Substring(0, 16)} (UTC)";
+                    Deny(response, res.Code == 403 ? ConnectStatus.AccountSuspended : ConnectStatus.ServerMaintenance, (denied?.message ?? "") + until);
+                    return;
+                }
+                if (!res.Ok)
+                {
+                    Deny(response, res.Code == 401 ? ConnectStatus.LoginFailed : ConnectStatus.ServerError);
+                    return;
+                }
+                var login = JsonUtility.FromJson<LoginResponse>(res.Text);
+                var playerId = "acct-" + login.accountId;
+                if (SessionManager<SessionPlayerData>.Instance.IsDuplicateConnection(playerId))
+                {
+                    Deny(response, ConnectStatus.LoggedInAgain);
+                    return;
+                }
+                var data = new SessionPlayerData(clientId, payload.userName, new NetworkGuid(), 0, true) { AccountId = login.accountId };
+                SessionManager<SessionPlayerData>.Instance.SetupConnectingPlayerSessionData(clientId, playerId, data);
+                response.Approved = true;
+                response.CreatePlayerObject = true;
+                response.Position = Vector3.zero;
+                response.Rotation = Quaternion.identity;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                Deny(response, ConnectStatus.ServerError);
+            }
+            finally
+            {
+                response.Pending = false;
+            }
+        }
+
+        static void Deny(NetworkManager.ConnectionApprovalResponse response, ConnectStatus status, string detail = "")
+        {
+            response.Approved = false;
+            response.Reason = ConnectReason.Encode(status, detail);
         }
 
         ConnectStatus GetConnectStatus(ConnectionPayload connectionPayload)

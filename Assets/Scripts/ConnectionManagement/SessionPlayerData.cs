@@ -14,6 +14,8 @@ namespace Unity.BossRoom.ConnectionManagement
         public NetworkGuid AvatarNetworkGuid;
         public int CurrentHitPoints;
         public bool HasCharacterSpawned;
+        // 게임 API 계정 번호 — 전용 서버가 로그인 뒤 채운다(호스트 모드면 0)
+        public int AccountId;
 
         public SessionPlayerData(ulong clientID, string name, NetworkGuid avatarNetworkGuid, int currentHitPoints = 0, bool isConnected = false, bool hasCharacterSpawned = false)
         {
@@ -26,6 +28,7 @@ namespace Unity.BossRoom.ConnectionManagement
             CurrentHitPoints = currentHitPoints;
             IsConnected = isConnected;
             HasCharacterSpawned = hasCharacterSpawned;
+            AccountId = 0;
         }
 
         public bool IsConnected { get; set; }

@@ -11,7 +11,8 @@
         "Unity.Multiplayer.Samples.Utilities",
         "Unity.BossRoom.Utils",
         "Unity.BossRoom.ConnectionManagement",
-        "VContainer"
+        "VContainer",
+        "Unity.BossRoom.Showcase.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
