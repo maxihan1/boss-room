@@ -86,3 +86,7 @@ InitCodeMarker
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+
+# 시연 작업에서 생기는 것
+.vscode/
+*.slnx
