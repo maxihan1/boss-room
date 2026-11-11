@@ -1,0 +1,128 @@
+# showcase 에 올라오면 game-ci 로 QA APK(control_cli SDK) · Linux 전용 서버를 빌드하고, 서버는 시연 서버에 올리고 APK 는 Test Commander 에 올린 뒤 배포 신호를 보낸다
+# 옛 maxihan1/anyrpg 「QA 배포」를 옮겨 왔다(11-11 사용자 결정). Unity 비밀값이 없으면 빌드를 건너뛴다
+name: QA 배포
+on:
+  push:
+    branches: [showcase]
+  workflow_dispatch:
+concurrency:
+  group: qa-deploy
+  cancel-in-progress: false
+permissions:
+  contents: read
+env:
+  UNITY_VERSION: 6000.3.10f1
+  CONTROL_CLI_REF: v0.7.0
+jobs:
+  no:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.no.outputs.build }}
+      ready: ${{ steps.no.outputs.ready }}
+    steps:
+      - id: no
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          echo "build=${GITHUB_SHA::7}-$(TZ=Asia/Seoul date +%Y%m%d%H%M)" >> "$GITHUB_OUTPUT"
+          if [ -n "$UNITY_LICENSE" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "UNITY_LICENSE 가 없어 빌드를 건너뜀"; fi
+  unity:
+    needs: no
+    if: needs.no.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: Android
+            method: ShowcaseBuild.AndroidQa
+          - target: StandaloneLinux64
+            method: ShowcaseBuild.LinuxServer
+    steps:
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: ${{ matrix.target != 'Android' }}
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ matrix.target }}-${{ hashFiles('Packages/packages-lock.json') }}
+          restore-keys: Library-${{ matrix.target }}-
+      # 맥 전용 툴체인(맥에서 Linux 용으로 빌드하는 도구)은 Linux 러너에 필요 없고 받다 깨질 수 있다
+      - run: jq 'del(.dependencies["com.unity.toolchain.macos-arm64-linux"])' Packages/manifest.json > m.json && mv m.json Packages/manifest.json
+      - if: matrix.target == 'Android'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # control_cli 규칙대로 SDK 는 빌드할 때만 넣는다(저장소에 안 남김)
+      - if: matrix.target == 'Android'
+        name: control_cli 넣기
+        run: |
+          git clone -q --depth 1 -b "$CONTROL_CLI_REF" https://github.com/maxihan1/control_cli.git "$RUNNER_TEMP/control_cli"
+          (cd "$RUNNER_TEMP/control_cli" && npm ci --silent && npm run build --silent)
+          node "$RUNNER_TEMP/control_cli/dist/main.js" instrument "$GITHUB_WORKSPACE" --ref "$CONTROL_CLI_REF"
+      - if: matrix.target == 'Android'
+        name: 고정 서명 키
+        env:
+          KS: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: mkdir -p Builds && if [ -n "$KS" ]; then printf %s "$KS" | base64 -d > Builds/ci-debug.keystore; fi
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: ${{ matrix.target }}
+          buildMethod: ${{ matrix.method }}
+          allowDirtyBuild: true
+          versioning: None
+      - if: matrix.target == 'Android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bossroom-qa-${{ needs.no.outputs.build }}
+          path: Builds/android/bossroom-qa.apk
+          retention-days: 14
+      - if: matrix.target == 'StandaloneLinux64'
+        run: sudo tar -czf server.tgz --exclude "*_BurstDebugInformation_DoNotShip" -C Builds/linux-server .
+      - if: matrix.target == 'StandaloneLinux64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bossroom-server-${{ needs.no.outputs.build }}
+          path: server.tgz
+          retention-days: 7
+  deploy:
+    needs: [no, unity]
+    runs-on: ubuntu-latest
+    env:
+      BUILD: ${{ needs.no.outputs.build }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bossroom-*-${{ needs.no.outputs.build }}
+          merge-multiple: true
+      - name: 게임 서버 반영
+        if: vars.DEPLOY_HOST != ''
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id && chmod 600 ~/.ssh/id
+          printf '%s\n' "$HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id -o IdentitiesOnly=yes root@${{ vars.DEPLOY_HOST }} "anyrpg-game $BUILD" < server.tgz
+      - name: APK 올리고 배포 신호
+        env:
+          QAHUB_CI_TOKEN: ${{ secrets.QAHUB_CI_TOKEN }}
+          QAHUB_DEPLOY_TOKEN: ${{ secrets.QAHUB_DEPLOY_TOKEN }}
+          BTS_DEPLOY_WEBHOOK: ${{ secrets.BTS_DEPLOY_WEBHOOK }}
+        run: |
+          [ -n "$QAHUB_CI_TOKEN" ] || { echo "QAHUB_CI_TOKEN 이 없어 올리기 · 신호를 건너뜀"; exit 0; }
+          curl --fail-with-body -sS -X POST -H "Authorization: Bearer $QAHUB_CI_TOKEN" -H 'Content-Type: application/octet-stream' \
+            --data-binary @bossroom-qa.apk "https://commander.maxihan.com/api/builds?env=qa&buildNo=$BUILD"
+          BODY=$(jq -cn --arg b "$BUILD" '{build:$b, services:["ARG"]}')
+          if [ -n "$BTS_DEPLOY_WEBHOOK" ]; then curl --fail-with-body -sS -o /dev/null -X POST -H 'Content-Type: application/json' -d "$BODY" "$BTS_DEPLOY_WEBHOOK"; fi
+          if [ -n "$QAHUB_DEPLOY_TOKEN" ]; then curl --fail-with-body -sS -X POST -H "Authorization: Bearer $QAHUB_DEPLOY_TOKEN" -H 'Content-Type: application/json' -d "$BODY" "https://commander.maxihan.com/api/projects/16/deploys"; fi

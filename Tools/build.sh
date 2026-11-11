@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Boss Room 시연 빌드 — android: 폰 APK · server: Linux 전용 서버 · mac: 맥 접속 시험용 · smoke: 맥에서 서버+접속기로 접속 확인
+# Boss Room 시연 빌드 — android: 폰 APK · qa: control_cli SDK 넣은 시험용 APK · server: Linux 전용 서버 · mac: 맥 접속 시험용 · smoke: 맥에서 서버+접속기로 접속 확인
 set -euo pipefail
 
 UNITY=${UNITY:-/Applications/Unity/Hub/Editor/6000.3.10f1/Unity.app/Contents/MacOS/Unity}
@@ -8,8 +8,26 @@ mkdir -p "$ROOT/Builds"
 
 unity() { "$UNITY" -batchmode -quit -nographics -projectPath "$ROOT" -buildTarget "$1" -executeMethod "$2" -logFile "$ROOT/Builds/$3.log"; }
 
+# control_cli 규칙: 게임 저장소에는 SDK 를 남기지 않는다 — instrument 가 고친 manifest · asmdef 를 빌드 뒤 되돌린다
+CONTROL_CLI=${CONTROL_CLI:-$HOME/Projects/control_cli}
+CONTROL_CLI_REF=${CONTROL_CLI_REF:-v0.7.0}
+restore() {
+  git -C "$ROOT" checkout -- Packages/manifest.json Packages/packages-lock.json
+  local changed
+  changed=$(git -C "$ROOT" diff --name-only -- '*.asmdef')
+  [ -z "$changed" ] || (cd "$ROOT" && echo "$changed" | xargs git checkout --)
+}
+
 case "${1:-}" in
   android) unity Android ShowcaseBuild.Android android; ls -lh "$ROOT/Builds/android/bossroom.apk" ;;
+  qa)
+    # 게임 케이스용 — control_cli SDK 를 넣은 APK(넣은 흔적은 끝나면 되돌림)
+    git -C "$ROOT" diff --quiet -- Packages '*.asmdef' || { echo "Packages · asmdef 에 커밋 안 한 변경이 있어 되돌리기가 그것까지 지운다 — 먼저 커밋" >&2; exit 1; }
+    node "$CONTROL_CLI/dist/main.js" instrument "$ROOT" --ref "$CONTROL_CLI_REF"
+    trap restore EXIT
+    unity Android ShowcaseBuild.AndroidQa android-qa
+    ls -lh "$ROOT/Builds/android/bossroom-qa.apk"
+    ;;
   server)  unity Linux64 ShowcaseBuild.LinuxServer linux-server; ls -lh "$ROOT/Builds/linux-server/BossRoomServer.x86_64" ;;
   mac)     unity OSXUniversal ShowcaseBuild.MacSmoke mac ;;
   setup)   unity OSXUniversal ShowcaseSetup.Run setup; grep -E "\[setup\]|error CS" "$ROOT/Builds/setup.log" ;;
@@ -73,5 +91,5 @@ case "${1:-}" in
     echo "== 서버"; grep -E "\[api\]|Exception" "$ROOT/Builds/s-server.log" | head -8 || true
     for n in p1 p2; do echo "== $n"; grep -E "\[toast\]|\[invite\]|\[script\] (소셜|끝)|\[chat\]" "$ROOT/Builds/s-$n.log" | head -25 || true; done
     ;;
-  *) echo "쓰는 법: Tools/build.sh android|server|mac|smoke|shots [이름]" >&2; exit 2 ;;
+  *) echo "쓰는 법: Tools/build.sh android|qa|server|mac|smoke|shots [이름]" >&2; exit 2 ;;
 esac
