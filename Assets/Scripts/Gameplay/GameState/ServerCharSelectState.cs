@@ -134,6 +134,9 @@ namespace Unity.BossRoom.Gameplay.GameState
         /// </summary>
         void CloseSessionIfReady()
         {
+            // 시연 전용 서버엔 방장이 없다 — 마지막 사람이 로비를 나가 0명이 되면 빈 던전을 열지 않는다
+            if (networkCharSelection.sessionPlayers.Count == 0) return;
+
             foreach (NetworkCharSelection.SessionPlayerState playerInfo in networkCharSelection.sessionPlayers)
             {
                 if (playerInfo.SeatState != NetworkCharSelection.SeatState.LockedIn)
