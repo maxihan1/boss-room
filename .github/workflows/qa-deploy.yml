@@ -12,7 +12,7 @@ permissions:
   contents: read
 env:
   UNITY_VERSION: 6000.3.10f1
-  CONTROL_CLI_REF: v0.7.0
+  CONTROL_CLI_REF: v0.8.0
 jobs:
   no:
     runs-on: ubuntu-latest

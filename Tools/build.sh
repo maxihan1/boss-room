@@ -10,7 +10,7 @@ unity() { "$UNITY" -batchmode -quit -nographics -projectPath "$ROOT" -buildTarge
 
 # control_cli 규칙: 게임 저장소에는 SDK 를 남기지 않는다 — instrument 가 고친 manifest · asmdef 를 빌드 뒤 되돌린다
 CONTROL_CLI=${CONTROL_CLI:-$HOME/Projects/control_cli}
-CONTROL_CLI_REF=${CONTROL_CLI_REF:-v0.7.0}
+CONTROL_CLI_REF=${CONTROL_CLI_REF:-v0.8.0}
 restore() {
   git -C "$ROOT" checkout -- Packages/manifest.json Packages/packages-lock.json
   local changed
