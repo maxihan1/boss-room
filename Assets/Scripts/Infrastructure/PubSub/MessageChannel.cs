@@ -42,6 +42,12 @@ namespace Unity.BossRoom.Infrastructure
 
             foreach (var messageHandler in m_MessageHandlers)
             {
+                // 한 번도 켜지지 않은 채 사라진 화면은 OnDestroy 가 불리지 않아 구독을 못 푼다 — 건너뛰고 다음 번에 뺀다
+                if (messageHandler?.Target is UnityEngine.Object owner && owner == null)
+                {
+                    m_PendingHandlers[messageHandler] = false;
+                    continue;
+                }
                 if (messageHandler != null)
                 {
                     messageHandler.Invoke(message);

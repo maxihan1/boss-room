@@ -84,5 +84,24 @@ namespace Unity.BossRoom.Tests.Runtime
             Assert.AreEqual(m_NbSubscribers, m_NbMessagesReceived);
             subscriptions.Dispose();
         }
+
+        class SpinnerOwner : MonoBehaviour
+        {
+            public void OnMessage(EmptyMessage message) => gameObject.SetActive(false);
+        }
+
+        [Test]
+        public void DestroyedSubscriberThatNeverUnsubscribedIsSkipped()
+        {
+            var messageChannel = new MessageChannel<EmptyMessage>();
+            var owner = new GameObject("never-enabled").AddComponent<SpinnerOwner>();
+            messageChannel.Subscribe(owner.OnMessage);
+            var subscriptions = SubscribeToChannel(messageChannel);
+            UnityEngine.Object.DestroyImmediate(owner.gameObject);
+
+            Assert.DoesNotThrow(() => messageChannel.Publish(new EmptyMessage()));
+            Assert.AreEqual(m_NbSubscribers, m_NbMessagesReceived);
+            subscriptions.Dispose();
+        }
     }
 }
