@@ -103,7 +103,11 @@ namespace Unity.BossRoom.Gameplay.Showcase
         {
             if (hp >= 0) return hp;
             if (inflicter != null && !inflicter.IsNpc && Of(inflicter.OwnerClientId) is { } a) hp = Mathf.RoundToInt(hp * a.AttackMult);
-            if (target != null && !target.IsNpc && Of(target.OwnerClientId) is { } d) hp = Mathf.Min(-1, Mathf.RoundToInt(hp * (1 - d.Defense)));
+            if (target != null && !target.IsNpc && Of(target.OwnerClientId) is { } d)
+            {
+                var scale = inflicter != null && inflicter.IsNpc ? GameData.EnemyDamageScale(PlayerServerCharacter.GetPlayerServerCharacters().Count) : 1f;
+                hp = Mathf.Min(-1, Mathf.RoundToInt(hp * scale * (1 - d.Defense)));
+            }
             return hp;
         }
 

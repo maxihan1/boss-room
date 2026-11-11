@@ -67,6 +67,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
         public static float LevelBonus(int level) => 0.03f * (level - 1);
         public static float LevelDefense(int level) => 0.01f * (level - 1);
 
+        // 원래 4인 협동 난이도라 혼자면 첫 방에서 몇 초 만에 쓰러진다 — 적이 주는 피해를 1명 50% · 2명 75% 로 (11-11 사용자)
+        public static float EnemyDamageScale(int players) => players <= 1 ? 0.5f : players == 2 ? 0.75f : 1f;
+
         public static readonly List<QuestDef> DailyQuests = new()
         {
             new QuestDef { Id = "daily_imp", Title = "임프 30마리 처치", Target = 30, Gold = 150, Exp = 200 },
