@@ -104,7 +104,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
             m_Bar.localScale = Vector3.one * (dungeon ? 0.85f : 1f);
             m_Notice.SetActive(!dungeon);
             m_Menu.anchorMin = m_Menu.anchorMax = dungeon ? new Vector2(1f, 0.5f) : new Vector2(0f, 0.5f);
-            m_Menu.anchoredPosition = dungeon ? new Vector2(-100, 60) : new Vector2(130, 30);
+            m_Menu.anchoredPosition = dungeon ? new Vector2(-100, -10) : new Vector2(130, 30);
             m_Menu.localScale = Vector3.one * (dungeon ? 0.75f : 0.9f);
             m_PotionButton.gameObject.SetActive(dungeon);
             // 로비는 아래쪽에 영웅 자리 카드가 있어 그 위에, 던전은 왼쪽 아래 구석

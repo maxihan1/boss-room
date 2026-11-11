@@ -215,7 +215,8 @@ namespace Unity.Multiplayer.Samples.Utilities
         {
             if (m_LoadingScreenRunning)
             {
-                m_SceneName.text = sceneName;
+                // 시연판: 내부 장면 이름(CharSelect 등)을 화면에 드러내지 않는다
+                m_SceneName.text = "";
                 if (m_FadeOutCoroutine != null)
                 {
                     StopCoroutine(m_FadeOutCoroutine);
