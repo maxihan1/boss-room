@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.BossRoom.Infrastructure;
 using Unity.BossRoom.UnityServices.Sessions;
 using Unity.Multiplayer.Samples.BossRoom;
@@ -23,6 +24,10 @@ namespace Unity.BossRoom.ConnectionManagement
 
         // used in ApprovalCheck. This is intended as a bit of light protection against DOS attacks that rely on sending silly big buffers of garbage.
         const int k_MaxConnectPayload = 1024;
+
+        // 로그인 확인(게임 API)을 기다리는 접속. 그사이 떠난 접속을 확인이 끝난 뒤 세션에 올리면 끊김 알림이 다시 오지 않아
+        // 그 계정이 서버를 다시 켤 때까지 「같은 계정으로 이미 접속 중」으로 막힌다(2026-11-14 작성 폰 실행에서 40분 넘게 막힘)
+        readonly HashSet<ulong> m_Approving = new HashSet<ulong>();
 
         public override void Enter()
         {
@@ -60,6 +65,7 @@ namespace Unity.BossRoom.ConnectionManagement
 
         public override void OnClientDisconnect(ulong clientId)
         {
+            m_Approving.Remove(clientId);
             if (clientId != m_ConnectionManager.NetworkManager.LocalClientId)
             {
                 var playerId = SessionManager<SessionPlayerData>.Instance.GetPlayerId(clientId);
@@ -157,6 +163,7 @@ namespace Unity.BossRoom.ConnectionManagement
 
         async void ApproveWithLogin(ulong clientId, ConnectionPayload payload, NetworkManager.ConnectionApprovalResponse response)
         {
+            m_Approving.Add(clientId);
             try
             {
                 if (m_ConnectionManager.NetworkManager.ConnectedClientsIds.Count >= m_ConnectionManager.MaxConnectedPlayers)
@@ -175,6 +182,12 @@ namespace Unity.BossRoom.ConnectionManagement
                 if (!res.Ok)
                 {
                     Deny(response, res.Code == 401 ? ConnectStatus.LoginFailed : ConnectStatus.ServerError);
+                    return;
+                }
+                if (!m_Approving.Contains(clientId))
+                {
+                    // 확인을 기다리는 사이 떠났다 — 세션에 올리지 않는다
+                    Deny(response, ConnectStatus.GenericDisconnect);
                     return;
                 }
                 var login = JsonUtility.FromJson<LoginResponse>(res.Text);
@@ -198,6 +211,7 @@ namespace Unity.BossRoom.ConnectionManagement
             }
             finally
             {
+                m_Approving.Remove(clientId);
                 response.Pending = false;
             }
         }

@@ -53,6 +53,25 @@ case "${1:-}" in
     "$BIN" -screen-fullscreen 0 -screen-width 1280 -screen-height 720 -host -autoplay -uiTour -seat "${SEAT:-0}" -shots "$OUT" -quitAfter "${QUIT_AFTER:-60}" -logFile "$ROOT/Builds/shots.log" || true
     ls "$OUT"
     ;;
+  ghost)
+    # 로그인 확인이 2초 걸리는 맥 서버에 접속하다 1초 만에 나간 뒤 다시 접속한다 — 떠난 접속이 세션에 남으면 「이미 접속 중」으로 거절된다
+    BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
+    CFG=${CFG:-$HOME/.config/anyrpg-test}
+    USER_ID=${USER_ID:-qa_player3}
+    PASS=$(grep "^$USER_ID=" "$CFG/game-accounts.txt" | cut -d= -f2-)
+    PORT=${PORT:-7796}
+    set -a; . "$CFG/game-server.env"; set +a
+    TARGET=$ANYRPG_API_SERVER DELAY_MS=2000 node "$ROOT/Tools/slow-login.mjs" &
+    PROXY=$!
+    ( export ANYRPG_API_SERVER=http://127.0.0.1:7799; exec "$BIN" -batchmode -nographics -server -port "$PORT" -logFile "$ROOT/Builds/g-server.log" ) > /dev/null 2>&1 &
+    SERVER=$!
+    trap 'kill $SERVER $PROXY 2>/dev/null || true' EXIT
+    sleep 8
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass "$PASS" -quitAfter 1 -logFile "$ROOT/Builds/g-left.log" > /dev/null 2>&1 || true
+    sleep 20
+    "$BIN" -batchmode -nographics -connect "127.0.0.1:$PORT" -user "$USER_ID" -pass "$PASS" -quitAfter 12 -logFile "$ROOT/Builds/g-again.log" > /dev/null 2>&1 || true
+    grep -q "to ClientConnectedState" "$ROOT/Builds/g-again.log" && echo "GHOST OK" || { echo "GHOST FAIL: 떠난 접속이 계정을 붙들고 있다" >&2; exit 1; }
+    ;;
   login)
     # 실제 게임 API 에 붙은 맥 서버 + 화면 없는 접속기 둘(맞는 · 틀린 비밀번호) — 비밀은 ~/.config/anyrpg-test 에서 읽는다
     BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
