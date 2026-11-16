@@ -91,6 +91,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
             var text = (r.Text ?? "").Trim();
             if (text.Length == 0) return;
             if (text.Length > 100) text = text.Substring(0, 100);
+            if (TryGm(p, text)) return;
             var rest = await Restrictions(p);
             if (rest != null && rest.chatMuted)
             {

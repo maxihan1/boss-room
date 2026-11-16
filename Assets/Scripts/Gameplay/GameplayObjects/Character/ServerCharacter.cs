@@ -316,6 +316,11 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
                     return;
                 }
 #endif
+                // 시험 서버 GM 명령 「/gm god」 — 앱과 서버가 같이 아는 값(IsGodMode)은 개발 빌드에만 있어 서버만 기억한다
+                if (!IsNpc && Unity.BossRoom.Gameplay.Showcase.ShowcaseServer.GmGod.Contains(OwnerClientId))
+                {
+                    return;
+                }
 
                 m_ServerActionPlayer.OnGameplayActivity(Action.GameplayActivity.AttackedByEnemy);
                 float damageMod = m_ServerActionPlayer.GetBuffedValue(Action.BuffableValue.PercentDamageReceived);
