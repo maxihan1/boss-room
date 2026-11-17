@@ -43,6 +43,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             var mine = health.TryGetComponent<ServerCharacter>(out var sc) && !sc.IsNpc && sc.OwnerClientId == NetworkManager.Singleton.LocalClientId;
             var color = delta > 0 ? new Color(0.45f, 1f, 0.45f) : mine ? new Color(1f, 0.35f, 0.3f) : Color.white;
             var text = UIKit.Label(GameHud.Instance.CanvasRoot, delta > 0 ? $"+{delta}" : $"{-delta}", delta > 0 ? 40 : 46, color, Vector2.zero, Vector2.zero, new Vector2(200, 60), TextAlignmentOptions.Center, title: true);
+            // 자동 테스트가 종류별로 찾을 수 있게 이름을 붙인다 — UIKit.Label 은 전부 「Label」이라 못 가린다
+            text.transform.parent.name = delta > 0 ? "HealNumber" : mine ? "DamageNumberMine" : "DamageNumberEnemy";
             text.outlineWidth = 0.25f;
             text.outlineColor = new Color32(0, 0, 0, 200);
             StartCoroutine(Rise(text, health.transform));
