@@ -13,6 +13,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
         /// <summary>무적을 켠 접속 — 서버만 안다. 접속 번호는 다시 쓰이지 않아 나간 사람 것을 따로 지우지 않는다</summary>
         public static readonly System.Collections.Generic.HashSet<ulong> GmGod = new System.Collections.Generic.HashSet<ulong>();
 
+        // 남은 체력만큼만 깎으면 방어율 · 버프가 피해를 줄여 안 쓰러진다(레벨 30 · 갑옷 — 2026-11-17 작성 폰 실행에서 「쓰러뜨리기 실패」) — 줄어도 남지 않을 만큼 크게 깎는다
+        const int k_Lethal = -1_000_000;
+
         static bool GmEnabled => Environment.GetEnvironmentVariable("BOSSROOM_GM") == "1";
 
         /// <summary>GM 명령이면 처리하고 true. 결과는 보낸 사람에게만 「[GM] …」 알림으로 돌려준다</summary>
@@ -30,7 +33,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 case "killboss":
                     var npcs = UnityEngine.Object.FindObjectsByType<ServerCharacter>(FindObjectsSortMode.None)
                         .Where(c => c.IsNpc && c.LifeState == LifeState.Alive && (cmd == "killall" || c.CharacterType == CharacterTypeEnum.ImpBoss)).ToList();
-                    foreach (var c in npcs) c.GetComponent<IDamageable>()?.ReceiveHitPoints(null, -c.HitPoints);
+                    foreach (var c in npcs) c.GetComponent<IDamageable>()?.ReceiveHitPoints(null, k_Lethal);
                     done = $"{cmd} {npcs.Count}";
                     break;
                 case "god":
@@ -44,7 +47,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     break;
                 case "faint" when me != null:
                     GmGod.Remove(p.ClientId);
-                    me.GetComponent<IDamageable>()?.ReceiveHitPoints(null, -me.HitPoints);
+                    me.GetComponent<IDamageable>()?.ReceiveHitPoints(null, k_Lethal);
                     done = "faint";
                     break;
                 case "exp" when hasN && n > 0:
