@@ -245,7 +245,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
             return (account, JsonUtility.FromJson<PlayerCharacterList>(res.Text).playerCharacters);
         }
 
-        // mode new: 캐릭터를 지워 새 계정으로 · base: 기준 상태(레벨 1 · 골드 200 · 물약 3 · 친구 · 길드 없음) · raw: 이름 · 레벨을 검사 없이 그대로 넣는다
+        // mode new: 캐릭터를 지워 새 계정으로 · base: 기준 상태(레벨 1 · 골드 200 · 물약 3 · 친구 · 길드 · 우편 없음) · raw: 이름 · 레벨을 검사 없이 그대로 넣는다
         static async Task<string> Reset(TestReq r)
         {
             var (_, rows) = await Characters(r);
@@ -254,6 +254,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 if (r.mode == "new")
                 {
                     await ClearSocial(row.id);
+                    await ClearMail(row.id);
                     var del = await GameApi.Post("/api/deleteplayercharacter", new IdRequest { Id = row.id });
                     if (!del.Ok) throw new TestError($"캐릭터 지우기 실패({del.Code})");
                     continue;
@@ -268,6 +269,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 else if (r.mode == "base")
                 {
                     await ClearSocial(row.id);
+                    await ClearMail(row.id);
                     if (string.IsNullOrWhiteSpace(p.Name) || p.Name == "New Player") p.Name = r.user;
                     Starter(p);
                     p.Data.CharacterLevel = 1;
@@ -298,6 +300,21 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 done.Add(user);
             }
             return $"{{\"ok\":true,\"reset\":[{string.Join(",", done.Select(Q))}]}}";
+        }
+
+        // 되돌릴 때 우편함도 비운다 — 첨부를 못 받는 우편(모르는 아이템)은 게임 안에서 받지도 지우지도 못해, 남으면 우편 수 · 빈 우편함을 보는 케이스가 계속 깨진다
+        static async Task ClearMail(int characterId)
+        {
+            var res = await GameApi.Post("/api/getmailmessages", new CharacterIdRequest { PlayerCharacterId = characterId });
+            // 케이스가 걸어 둔 「한 번 실패」가 이 읽기에 걸릴 수 있다 — 한 번 더 읽는다
+            if (!res.Ok) res = await GameApi.Post("/api/getmailmessages", new CharacterIdRequest { PlayerCharacterId = characterId });
+            if (!res.Ok) throw new TestError($"우편 읽기 실패({res.Code})");
+            foreach (var row in JsonUtility.FromJson<MailList>(res.Text).mailMessages)
+            {
+                var del = await GameApi.Post("/api/deletemailmessage", new IdRequest { Id = row.id });
+                if (!del.Ok) throw new TestError($"우편 지우기 실패({del.Code})");
+            }
+            s_MailCache.Remove(characterId);
         }
 
         // 친구 목록 · 친구 신청 · 길드에서 이 캐릭터를 뺀다 — 접속 중인 사람 화면도 다시 그린다

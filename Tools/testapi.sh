@@ -35,7 +35,10 @@ CUT=9000 c "/test/bot/log?bot=qa_player3&clear=1" | python3 -c "import sys,re; [
 c /test/bot/stop -d '{"all":true}'; sleep 2
 echo "== 캐릭터 불러오기 실패 — 접속이 안 되고 캐릭터가 늘지 않는다(characters 1)"; c /test/fail -d '{"path":"/api/getplayercharacters","count":1}'
 NOTE="실패해야 함(60초)" c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; c /test/bot/stop -d '{"all":true}'; c /test/reset -d "$(j user qa_player3 pass "$P3" mode base)"
-echo "== 실행 전 준비 — 봇을 끄고 qa_player3 을 기준 상태로(레벨 1 · 골드 200)"; c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; do_ qa_player3 "gm:level 9"; do_ qa_player3 "gm:gold 5000"; sleep 1
+echo "== 되돌리기가 우편함도 비운다 — 시험 우편을 넣고 base 로 되돌린 뒤 「모두 받기」가 「받을 첨부가 없습니다」"; c /test/mail -d "$(j user qa_player3 pass "$P3" cmd "남는 우편")"; c /test/reset -d "$(j user qa_player3 pass "$P3" mode base)"
+c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; do_ qa_player3 "mail_take_all"; sleep 2
+CUT=9000 c "/test/bot/log?bot=qa_player3&clear=1" | python3 -c "import sys,re; [print('   ', m) for m in re.findall(r'\"Text\":\"([^\"]*)\"', sys.stdin.read()) if '첨부' in m or '우편' in m]"; c /test/bot/stop -d '{"all":true}'; sleep 2
+echo "== 실행 전 준비 — 봇을 끄고 qa_player3 을 기준 상태로(레벨 1 · 골드 200)";c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; do_ qa_player3 "gm:level 9"; do_ qa_player3 "gm:gold 5000"; sleep 1
 c /test/prep -d '{"runId":1,"service":"ARG","env":"qa","origin":"MANUAL"}'; c /test/state; c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; do_ qa_player3 "gm:stat"; sleep 1
 CUT=9000 c "/test/bot/log?bot=qa_player3&clear=1" | python3 -c "import sys,re; [print('   ', m) for m in re.findall(r'\"Text\":\"([^\"]*)\"', sys.stdin.read()) if '골드=' in m]"; c /test/bot/stop -d '{"all":true}'
 echo "== 서버 기록"; grep -E "Exception|\[test\]|시험 주소|\[api\]" "$OUT/server.log" | cut -c1-220 | sort | uniq -c | sort -rn | head -25
