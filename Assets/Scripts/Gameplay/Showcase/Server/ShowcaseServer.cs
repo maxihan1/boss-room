@@ -86,7 +86,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 if (GameApi.Enabled && profile.AccountId > 0)
                 {
                     var res = await GameApi.Post("/api/getplayercharacters", new AccountIdRequest { AccountId = profile.AccountId });
-                    var row = res.Ok ? JsonUtility.FromJson<PlayerCharacterList>(res.Text).playerCharacters.FirstOrDefault() : null;
+                    // 못 읽은 것을 「캐릭터 없음」으로 보면 있는 계정에 새 캐릭터를 또 만든다 — 실패는 오류 알림으로 끝낸다
+                    if (!res.Ok) throw new InvalidOperationException($"캐릭터를 불러오지 못했습니다 ({res.Code})");
+                    var row = JsonUtility.FromJson<PlayerCharacterList>(res.Text).playerCharacters.FirstOrDefault();
                     if (row != null)
                     {
                         profile.CharacterId = row.id;
