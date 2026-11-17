@@ -85,6 +85,12 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     foreach (var c in GameDataSource.Instance.CharacterDataByType.Values.Where(c => c.IsNpc == (what == "monster")))
                         GmLine(p, $"data {what} {(c.CharacterType switch { CharacterTypeEnum.Imp => "임프", CharacterTypeEnum.VandalImp => "던지는 임프", CharacterTypeEnum.ImpBoss => "보스 임프", _ => c.DisplayedName })}({c.CharacterType}) 체력={c.BaseHP.Value} 스킬={ActionRow(c.Skill1)},{ActionRow(c.Skill2)},{ActionRow(c.Skill3)}");
                     return true;
+                case "item":
+                    // 아이템 표 — 기획서 4.1 표와 같은 낱말(분류 · 등급)로 낸다. 효과는 비율 그대로(0.05 = +5%)
+                    foreach (var d in GameData.Items)
+                        GmLine(p, $"data item {d.Name} 분류={(d.Slot switch { ItemSlot.Weapon => "무기", ItemSlot.Armor => "갑옷", ItemSlot.Accessory => "장신구", ItemSlot.Potion => "물약", _ => "전리품" })} 등급={(d.Grade switch { ItemGrade.Legendary => "전설", ItemGrade.Epic => "영웅", ItemGrade.Rare => "희귀", _ => "일반" })} 상점가={(d.Price > 0 ? d.Price.ToString() : "없음")} 판매가={d.SellPrice} 공격={d.Attack} 방어={d.Defense} 골드획득={d.GoldBonus} 경험치획득={d.ExpBonus} 설명={d.Desc}");
+                    GmLine(p, $"data item 끝 {GameData.Items.Count}종");
+                    return true;
                 case "bag":
                     foreach (var i in p.Bag.Where(i => string.IsNullOrEmpty(i.GainCurrencyName))) GmLine(p, $"data bag {i.ItemName} 번호={i.ItemInstanceId}");
                     GmLine(p, $"data bag 끝 {p.Bag.Count}개");
@@ -218,7 +224,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     done = $"data {arg}";
                     break;
                 default:
-                    Toast(p, "[GM] 쓸 수 있는 명령: killall · killboss · god · heal · faint · hp <n> · tp boss|switch · spawn imp|thrower|boss|pot(던전 안) · exp <n> · level <n> · gold <n> · loot <아이템|none|off> · quest reset · stat · data monster|skill|bag", true);
+                    Toast(p, "[GM] 쓸 수 있는 명령: killall · killboss · god · heal · faint · hp <n> · tp boss|switch · spawn imp|thrower|boss|pot(던전 안) · exp <n> · level <n> · gold <n> · loot <아이템|none|off> · quest reset · stat · data monster|skill|item|bag", true);
                     return true;
             }
             p.Dirty = true;

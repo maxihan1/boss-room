@@ -19,7 +19,7 @@ echo "== 봇 셋"; c /test/bot/start -d '{"bot":"guest1"}'; c /test/bot/start -d
 c /test/state
 echo "== 친구"; do_ qa_player3 "friend_add:qa_player4"; sleep 1; do_ qa_player4 "friend_accept:qa_player3"; sleep 2
 echo "== 화면에 없는 요청"; do_ qa_player3 "buy:없는 아이템"; do_ qa_player3 "equip:체력 물약"
-echo "== GM 값 읽기(로비)"; do_ qa_player3 "gm:gold 900"; do_ qa_player3 "gm:stat"; do_ qa_player3 "gm:data monster"; do_ qa_player3 "gm:data skill"; do_ qa_player3 "gm:data bag"; do_ qa_player3 "gm:quest reset"; do_ qa_player3 "gm:loot 임프의 뿔"
+echo "== GM 값 읽기(로비)"; do_ qa_player3 "gm:gold 900"; do_ qa_player3 "gm:stat"; do_ qa_player3 "gm:data monster"; do_ qa_player3 "gm:data skill"; do_ qa_player3 "gm:data item"; do_ qa_player3 "gm:data bag"; do_ qa_player3 "gm:quest reset"; do_ qa_player3 "gm:loot 임프의 뿔"
 sleep 1; CUT=300 c "/test/bot/log?bot=qa_player3&clear=1"
 echo "== 로비 → 던전"; do_ guest1 seat:0; do_ qa_player3 seat:1; do_ qa_player4 seat:2; do_ guest1 ready; do_ qa_player3 ready; do_ qa_player4 ready; sleep 25
 echo "== GM 던전"; do_ qa_player3 "gm:stat"; do_ qa_player3 "gm:god"; do_ qa_player3 "gm:spawn imp"; do_ qa_player3 "gm:spawn thrower"; do_ qa_player3 "gm:spawn pot"; sleep 2; do_ qa_player3 "gm:killall"; sleep 1
