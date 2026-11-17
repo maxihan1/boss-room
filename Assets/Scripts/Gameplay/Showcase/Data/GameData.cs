@@ -49,6 +49,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             new ItemDef { Name = "행운의 반지", Slot = ItemSlot.Accessory, Grade = ItemGrade.Rare, Price = 300, GoldBonus = 0.2f, Desc = "골드 획득 +20%" },
             new ItemDef { Name = "현자의 목걸이", Slot = ItemSlot.Accessory, Grade = ItemGrade.Rare, Price = 300, ExpBonus = 0.2f, Desc = "경험치 획득 +20%" },
             new ItemDef { Name = "체력 물약", Slot = ItemSlot.Potion, Grade = ItemGrade.Common, Price = 30, Desc = "체력 50% 회복 · 던전에서 사용" },
+            // 판매가 최소 1 골드 규칙(3 / 4 = 0 → 1)이 실제로 일어나는 하나뿐인 아이템
+            new ItemDef { Name = "조약돌", Slot = ItemSlot.Material, Grade = ItemGrade.Common, Price = 3, Desc = "값싼 기념품" },
             new ItemDef { Name = "임프의 뿔", Slot = ItemSlot.Material, Grade = ItemGrade.Common, Desc = "상점에 팔 수 있는 전리품" },
             new ItemDef { Name = "보스의 왕관 조각", Slot = ItemSlot.Material, Grade = ItemGrade.Epic, Desc = "상점에 비싸게 팔 수 있는 전리품" },
         };
