@@ -5,7 +5,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd); OUT=${OUT:-$ROOT/Builds/testapi}; mkdir 
 BIN="$ROOT/Builds/mac/BossRoom.app/Contents/MacOS/$(ls "$ROOT/Builds/mac/BossRoom.app/Contents/MacOS" | head -1)"
 CFG=$HOME/.config/anyrpg-test; PORT=7793; TP=7783; KEY=local-test-key
 pw() { grep "^$1=" "$CFG/game-accounts.txt" | cut -d= -f2-; }
-( set -a; . "$CFG/game-server.env"; set +a; export BOSSROOM_GM=1 BOSSROOM_TEST_KEY=$KEY BOSSROOM_TEST_PORT=$TP; exec "$BIN" -batchmode -nographics -server -port $PORT -logFile "$OUT/server.log" ) >/dev/null 2>&1 &
+( set -a; . "$CFG/game-server.env"; set +a; export BOSSROOM_PREP_USERS="qa_player3:$(grep '^qa_player3=' "$CFG/game-accounts.txt" | cut -d= -f2-)" BOSSROOM_GM=1 BOSSROOM_TEST_KEY=$KEY BOSSROOM_TEST_PORT=$TP; exec "$BIN" -batchmode -nographics -server -port $PORT -logFile "$OUT/server.log" ) >/dev/null 2>&1 &
 S=$!; trap 'kill $S 2>/dev/null; pkill -P $S 2>/dev/null' EXIT; sleep 10
 c() { local path=$1; shift; echo "→ $path ${NOTE:-}"; curl -sS -m 75 -H "X-Admin-Key: $KEY" -H 'content-type: application/json' "http://127.0.0.1:$TP$path" "$@" | cut -c1-${CUT:-600}; echo; }
 j() { python3 -c 'import json,sys; a=sys.argv[1:]; print(json.dumps({k:(int(v) if v.isdigit() else v) for k,v in zip(a[::2],a[1::2])}, ensure_ascii=False))' "$@"; }
@@ -29,4 +29,13 @@ echo "== 내보내기 · 실패시키기 · 우편 · 새 계정"; c /test/kick 
 c /test/fail -d '{"path":"/api/getmailmessages","count":1}'; c /test/mail -d "$(j user qa_player3 pass "$P3" cmd "시험 첨부")"
 c /test/reset -d "$(j user qa_player4 pass "$P4" mode raw level 31)"; c /test/reset -d "$(j user qa_player4 pass "$P4" mode new)"
 c /test/bot/stop -d '{"all":true}'; sleep 2; c /test/state
+echo "== 싼 아이템 — 3 골드에 사서 1 골드에 판다(200 → 197 → 198)"; c /test/reset -d "$(j user qa_player3 pass "$P3" mode base)"; c /test/bot/start -d "$(j user qa_player3 pass "$P3")"
+do_ qa_player3 "buy:조약돌"; do_ qa_player3 "gm:stat"; do_ qa_player3 "sell:조약돌"; do_ qa_player3 "gm:stat"; sleep 1
+CUT=9000 c "/test/bot/log?bot=qa_player3&clear=1" | python3 -c "import sys,re; [print('   ', m) for m in re.findall(r'\"Text\":\"([^\"]*)\"', sys.stdin.read()) if '골드=' in m or '조약돌' in m]"
+c /test/bot/stop -d '{"all":true}'; sleep 2
+echo "== 캐릭터 불러오기 실패 — 접속이 안 되고 캐릭터가 늘지 않는다(characters 1)"; c /test/fail -d '{"path":"/api/getplayercharacters","count":1}'
+NOTE="실패해야 함(60초)" c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; c /test/bot/stop -d '{"all":true}'; c /test/reset -d "$(j user qa_player3 pass "$P3" mode base)"
+echo "== 실행 전 준비 — 봇을 끄고 qa_player3 을 기준 상태로(레벨 1 · 골드 200)"; c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; do_ qa_player3 "gm:level 9"; do_ qa_player3 "gm:gold 5000"; sleep 1
+c /test/prep -d '{"runId":1,"service":"ARG","env":"qa","origin":"MANUAL"}'; c /test/state; c /test/bot/start -d "$(j user qa_player3 pass "$P3")"; do_ qa_player3 "gm:stat"; sleep 1
+CUT=9000 c "/test/bot/log?bot=qa_player3&clear=1" | python3 -c "import sys,re; [print('   ', m) for m in re.findall(r'\"Text\":\"([^\"]*)\"', sys.stdin.read()) if '골드=' in m]"; c /test/bot/stop -d '{"all":true}'
 echo "== 서버 기록"; grep -E "Exception|\[test\]|시험 주소|\[api\]" "$OUT/server.log" | cut -c1-220 | sort | uniq -c | sort -rn | head -25

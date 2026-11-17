@@ -152,6 +152,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     return k_Ok;
                 case "/test/reset": return await Reset(r);
                 case "/test/mail": return await RawMail(r);
+                case "/test/prep": return await Prep();
                 default: throw new TestError($"모르는 주소 {path}");
             }
         }
@@ -278,6 +279,25 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 s_Names[row.id] = (p.Name, p.Data.CharacterLevel);
             }
             return $"{{\"ok\":true,\"characters\":{rows.Count}}}";
+        }
+
+        // 실행 전 준비 — Commander 가 실행마다 한 번 부른다(본문은 보지 않는다). 앞 실행이 남긴 봇 · 걸어 둔 실패 · 전리품 고정을 치우고
+        // BOSSROOM_PREP_USERS(「아이디:비밀번호,아이디:비밀번호」) 계정을 기준 상태로 되돌린다 — 앞 실행이 올린 레벨 · 골드가 다음 실행의 기대값을 깨지 않게
+        static async Task<string> Prep()
+        {
+            foreach (var b in s_Bots.Values.ToList()) Kill(b);
+            GameApi.FailNext.Clear();
+            GmLoot = null;
+            var done = new List<string>();
+            foreach (var pair in (Environment.GetEnvironmentVariable("BOSSROOM_PREP_USERS") ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var at = pair.IndexOf(':');
+                if (at <= 0) throw new TestError("BOSSROOM_PREP_USERS 는 「아이디:비밀번호,아이디:비밀번호」 꼴입니다");
+                var user = pair.Substring(0, at).Trim();
+                await Reset(new TestReq { user = user, pass = pair.Substring(at + 1), mode = "base" });
+                done.Add(user);
+            }
+            return $"{{\"ok\":true,\"reset\":[{string.Join(",", done.Select(Q))}]}}";
         }
 
         // 친구 목록 · 친구 신청 · 길드에서 이 캐릭터를 뺀다 — 접속 중인 사람 화면도 다시 그린다
