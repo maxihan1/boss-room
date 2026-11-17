@@ -25,8 +25,10 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     GainExp(p, Mathf.RoundToInt(GameData.BossExp * p.ExpMult * partyBonus));
                     AddQuest(p, "daily_boss", 1);
                     var legendary = Random.value < 0.35f ? (Random.value < 0.5f ? "불꽃의 검" : "용비늘 갑옷") : "보스의 왕관 조각";
-                    AddItem(p, legendary);
-                    Toast(p, $"보스 처치! {legendary} 획득");
+                    // 시험 서버 「/gm loot」 — 전리품을 고정했으면 그것만 준다
+                    if (GmLoot != null) legendary = GmLoot == "none" ? null : GmLoot;
+                    if (legendary != null) AddItem(p, legendary);
+                    Toast(p, legendary != null ? $"보스 처치! {legendary} 획득" : "보스 처치!");
                 }
                 else
                 {
@@ -34,8 +36,12 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     GainGold(p, Mathf.RoundToInt(Random.Range(GameData.ImpGoldMin, GameData.ImpGoldMax + 1) * p.GoldMult));
                     GainExp(p, Mathf.RoundToInt(GameData.ImpExp * p.ExpMult * partyBonus));
                     AddQuest(p, "daily_imp", 1);
-                    if (Random.value < GameData.ImpHornDrop) AddItem(p, "임프의 뿔");
-                    if (Random.value < GameData.PotionDrop) AddItem(p, "체력 물약");
+                    if (GmLoot != null) { if (GmLoot != "none") AddItem(p, GmLoot); }
+                    else
+                    {
+                        if (Random.value < GameData.ImpHornDrop) AddItem(p, "임프의 뿔");
+                        if (Random.value < GameData.PotionDrop) AddItem(p, "체력 물약");
+                    }
                 }
                 p.Dirty = true;
                 Push(p);

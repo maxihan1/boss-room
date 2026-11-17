@@ -270,9 +270,13 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
                     m_Movement.CancelMove();
                 }
 
+                Showcase.ShowcaseServer.GmNoteAction(this, action.ActionID);
                 m_ServerActionPlayer.PlayAction(ref action);
             }
         }
+
+        /// <summary>시험 서버 「/gm hp」 — 방어율 · 버프 보정 없이 체력을 정한 값으로 둔다</summary>
+        public void GmSetHitPoints(int hp) => HitPoints = hp;
 
         void OnLifeStateChanged(LifeState prevLifeState, LifeState lifeState)
         {
@@ -331,6 +335,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
                 serverAnimationHandler.NetworkAnimator.SetTrigger("HitReact1");
             }
 
+            Showcase.ShowcaseServer.GmNote(inflicter, this, HP);
             HitPoints = Mathf.Clamp(HitPoints + HP, 0, CharacterClass.BaseHP.Value);
 
             if (m_AIBrain != null)

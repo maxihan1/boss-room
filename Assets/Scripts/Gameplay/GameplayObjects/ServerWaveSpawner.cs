@@ -17,6 +17,9 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects
         [SerializeField]
         NetworkObject m_NetworkedPrefab;
 
+        /// <summary>시험 서버 「/gm tp boss」가 보스를 불러내는 장치를 찾는 데 쓴다</summary>
+        public NetworkObject Prefab => m_NetworkedPrefab;
+
         [SerializeField]
         [Tooltip("Each spawned enemy appears at one of the points in this list")]
         List<Transform> m_SpawnPositions;
