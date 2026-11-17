@@ -70,6 +70,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
         public static float LevelDefense(int level) => 0.01f * (level - 1);
 
         // 원래 4인 협동 난이도라 혼자면 첫 방에서 몇 초 만에 쓰러진다 — 적이 주는 피해를 1명 50% · 2명 75% 로 (11-11 사용자)
+        // 플레이어가 받는 피해의 최솟값 — 레벨 30 에 사슬 갑옷이면 혼자 맞는 임프 피해가 4 로 계산돼 이 값으로 올라간다(1 이면 게임 수치로는 닿을 수 없었다)
+        public const int MinDamageTaken = 5;
         public static float EnemyDamageScale(int players) => players <= 1 ? 0.5f : players == 2 ? 0.75f : 1f;
 
         public static readonly List<QuestDef> DailyQuests = new()
