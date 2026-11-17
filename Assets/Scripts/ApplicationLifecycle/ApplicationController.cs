@@ -113,6 +113,8 @@ namespace Unity.BossRoom.ApplicationLifecycle
                 StartCoroutine(AfterFirstFrame(() => m_ConnectionManager.StartServerIp("0.0.0.0", port)));
                 return;
             }
+            // 시험 주소가 서버 옆에 켜는 봇 — 화면이 없으니 느리게 돌려 서버 몫을 뺏지 않는다
+            if (HasArg("-bot")) Application.targetFrameRate = 15;
             if (ArgValue("-actions") != null) Unity.BossRoom.Gameplay.Showcase.ClientScript.Run(ArgValue("-actions"));
             if (HasArg("-autoplay") || ArgValue("-shots") != null)
             {

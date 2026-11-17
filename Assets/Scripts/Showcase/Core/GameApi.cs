@@ -24,11 +24,21 @@ namespace Unity.BossRoom.Showcase
 
         static string s_Token;
 
+        // 시험 주소 「실패시키기」 — 경로에 이 글자가 든 다음 요청을 적힌 횟수만큼 실패(500)로 돌려준다. 시험 서버(BOSSROOM_GM=1)에서만 채워진다
+        public static readonly Dictionary<string, int> FailNext = new Dictionary<string, int>();
+
         [Serializable] class TokenResponse { public int accountId; public string token; }
         [Serializable] class ServerLoginRequest { public string SharedSecret; }
 
         public static async Task<ApiResponse> Send(string method, string path, string json, bool auth = true)
         {
+            foreach (var key in new List<string>(FailNext.Keys))
+            {
+                if (!path.Contains(key)) continue;
+                if (--FailNext[key] <= 0) FailNext.Remove(key);
+                Debug.LogWarning($"[api] {method} {path} → 시험 주소가 실패시킴");
+                return new ApiResponse { Code = 500, Text = "시험 주소가 실패시킴" };
+            }
             if (auth && s_Token == null) await ServerLogin();
             var res = await SendOnce(method, path, json, auth);
             if (auth && res.Code == 401)

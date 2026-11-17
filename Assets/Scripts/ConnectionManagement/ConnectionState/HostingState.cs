@@ -171,6 +171,22 @@ namespace Unity.BossRoom.ConnectionManagement
                     Deny(response, ConnectStatus.ServerFull);
                     return;
                 }
+                // 시험 주소가 켠 손님 봇 — 계정 없이 들인다(접속자 수를 채우는 데 쓴다)
+                if (!string.IsNullOrEmpty(ShowcaseLogin.BotToken) && payload.password == ShowcaseLogin.BotToken)
+                {
+                    var botId = "bot-" + payload.userName;
+                    if (SessionManager<SessionPlayerData>.Instance.IsDuplicateConnection(botId))
+                    {
+                        Deny(response, ConnectStatus.LoggedInAgain);
+                        return;
+                    }
+                    SessionManager<SessionPlayerData>.Instance.SetupConnectingPlayerSessionData(clientId, botId, new SessionPlayerData(clientId, payload.userName, new NetworkGuid(), 0, true));
+                    response.Approved = true;
+                    response.CreatePlayerObject = true;
+                    response.Position = Vector3.zero;
+                    response.Rotation = Quaternion.identity;
+                    return;
+                }
                 var res = await GameApi.Post("/api/login", new LoginRequest { UserName = payload.userName, Password = payload.password }, auth: false);
                 if (res.Code == 403 || res.Code == 503)
                 {

@@ -14,5 +14,7 @@ namespace Unity.BossRoom.Showcase
         public static string TestCa;
         // 로그인 전 공지 · 점검을 읽는 공개 주소(인증 없음)
         public static string ApiBase = "https://bossroom-api.maxihan.com";
+        // 서버만 안다 — 시험 주소가 켠 손님 봇이 비밀번호 자리에 이 값을 보내면 계정 없이 들인다. 시험 서버가 아니면 비어 있다
+        public static string BotToken;
     }
 }

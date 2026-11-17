@@ -55,6 +55,17 @@ namespace Unity.BossRoom.Gameplay.Showcase
             }
         }
 
+        // 서버가 한 클라이언트에 보낸 것을 엿듣는다 — 시험 주소가 「봇이 본 알림」을 돌려주는 데 쓴다
+        public static event Action<ulong, string, string> Sent;
+
+        // 시험 주소가 봇 대신 요청을 넣는다 — 봇이 보낸 것과 똑같이 서버 처리기를 탄다
+        public static bool InvokeServer(string type, ulong clientId, string json)
+        {
+            if (!s_ServerHandlers.TryGetValue(type, out var h)) return false;
+            h(clientId, json);
+            return true;
+        }
+
         // 클라이언트 → 서버
         public static void ToServer(string type, object payload = null) => Send(NetworkManager.ServerClientId, type, payload);
 
@@ -62,6 +73,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
         public static void ToClient(ulong clientId, string type, object payload)
         {
             var nm = NetworkManager.Singleton;
+            Sent?.Invoke(clientId, type, Json(payload));
             if (nm.IsHost && clientId == nm.LocalClientId)
             {
                 if (s_ClientHandlers.TryGetValue(type, out var c)) c(Json(payload));
