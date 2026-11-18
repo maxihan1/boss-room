@@ -80,7 +80,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             // 플레이어 프리팹은 직업이 비어 있어 읽으면 던진다(로비)
             try { if (c != null && c.CharacterClass != null) job = c.CharacterClass.DisplayedName; }
             catch (Exception) { }
-            return $"{{\"user\":{Q(SessionName(p.ClientId))},\"level\":{p.Data.CharacterLevel},\"job\":{Q(job)},\"weapon\":{Q(p.Equipped(p.P.EquippedWeapon)?.Name ?? "-")},\"armor\":{Q(p.Equipped(p.P.EquippedArmor)?.Name ?? "-")},\"accessory\":{Q(p.Equipped(p.P.EquippedAccessory)?.Name ?? "-")}}}";
+            // 접속 안 한 계정(되돌리기의 기본 지급)은 세션이 없어 캐릭터 이름을 쓴다
+            return $"{{\"user\":{Q(SessionName(p.ClientId) is { Length: > 0 } s ? s : p.Name)},\"level\":{p.Data.CharacterLevel},\"job\":{Q(job)},\"weapon\":{Q(p.Equipped(p.P.EquippedWeapon)?.Name ?? "-")},\"armor\":{Q(p.Equipped(p.P.EquippedArmor)?.Name ?? "-")},\"accessory\":{Q(p.Equipped(p.P.EquippedAccessory)?.Name ?? "-")}}}";
         }
 
         static string ActionName(Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? "-" : string.IsNullOrEmpty(a.Config.DisplayedName) ? a.name : a.Config.DisplayedName;
