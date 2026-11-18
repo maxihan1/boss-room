@@ -25,6 +25,14 @@ echo "== 로비 → 던전"; do_ guest1 seat:0; do_ qa_player3 seat:1; do_ qa_pl
 echo "== GM 던전"; do_ qa_player3 "gm:stat"; do_ qa_player3 "gm:god"; do_ qa_player3 "gm:spawn imp"; do_ qa_player3 "gm:spawn thrower"; do_ qa_player3 "gm:spawn pot"; sleep 2; do_ qa_player3 "gm:killall"; sleep 1
 do_ qa_player3 "gm:hp 123"; do_ qa_player3 "gm:tp switch"; sleep 12; do_ qa_player3 "gm:stat"; do_ qa_player3 "gm:tp boss"; sleep 14; do_ qa_player3 "gm:stat"; do_ qa_player3 "gm:killboss"; sleep 2; do_ qa_player3 "gm:stat"
 CUT=9000 c "/test/bot/log?bot=qa_player3" | python3 -c "import sys,json,re; [print(\"   \", m) for m in re.findall(r'\"Text\":\"([^\"]*)\"', sys.stdin.read())]"
+echo "== 미션 로그 — 피해 · 처치 · 아이템 · 레벨 업 줄이 차례대로 쌓였고(종류마다 줄 수 · 첫 줄), since 뒤 것만 온다"
+CUT=900000 c "/test/log?since=0" | python3 -c "
+import sys, json, collections
+d = json.loads(sys.stdin.read().split('\n', 1)[1]); L = d['lines']; k = collections.Counter(x['kind'] for x in L)
+print('    줄', len(L), '· last', d['last'], '·', dict(k), '· 번호 이어짐', [x['seq'] for x in L] == list(range(1, len(L) + 1)))
+for kind in k: print('   ', json.dumps(next(x for x in L if x['kind'] == kind), ensure_ascii=False)[:420])
+"
+LAST=$(curl -sS -m 10 -H "X-Admin-Key: $KEY" "http://127.0.0.1:$TP/test/log?since=999999" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['last'], len(d['lines']))"); echo "    since 999999 → last · 줄 수: $LAST(줄 수 0 이어야 함)"
 echo "== 내보내기 · 실패시키기 · 우편 · 새 계정"; c /test/kick -d '{"user":"qa_player4"}'; sleep 2; c /test/state
 c /test/fail -d '{"path":"/api/getmailmessages","count":1}'; c /test/mail -d "$(j user qa_player3 pass "$P3" cmd "시험 첨부")"
 c /test/reset -d "$(j user qa_player4 pass "$P4" mode raw level 31)"; c /test/reset -d "$(j user qa_player4 pass "$P4" mode new)"

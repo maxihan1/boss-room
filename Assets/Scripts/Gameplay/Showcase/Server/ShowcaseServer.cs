@@ -208,6 +208,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 if (log && GameApi.Enabled) _ = GameApi.Post("/api/createiteminstance", new CreateItemRequest { ItemInstanceId = item.ItemInstanceId, SaveData = JsonUtility.ToJson(item) });
             }
             p.Dirty = true;
+            if (GmEnabled) MissionLog("item", $"\"by\":{LogWho(p)},\"item\":{Q(name)},\"count\":{count}");
         }
 
         [Serializable] class CreateItemRequest { public long ItemInstanceId; public string SaveData; }

@@ -23,7 +23,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
         class TestReq
         {
             public string bot, user, pass, cmd, path, status, mode, charName, detail;
-            public int count, level;
+            public int count, level, since;
             public long itemId;
             public bool all;
         }
@@ -99,6 +99,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 var r = string.IsNullOrWhiteSpace(text) ? new TestReq() : JsonUtility.FromJson<TestReq>(text) ?? new TestReq();
                 foreach (var k in ctx.Request.QueryString.AllKeys.Where(k => k == "bot")) r.bot = ctx.Request.QueryString[k];
                 if (ctx.Request.QueryString["clear"] == "1") r.all = true;
+                if (int.TryParse(ctx.Request.QueryString["since"], out var since)) r.since = since;
                 body = await Route(ctx.Request.Url.AbsolutePath.TrimEnd('/'), r);
             }
             catch (UnauthorizedAccessException) { code = 401; body = Err("X-Admin-Key 가 맞지 않습니다"); }
@@ -153,6 +154,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 case "/test/reset": return await Reset(r);
                 case "/test/mail": return await RawMail(r);
                 case "/test/prep": return await Prep();
+                case "/test/log": return MissionLogSince(r.since, r.all);
                 default: throw new TestError($"모르는 주소 {path}");
             }
         }

@@ -18,11 +18,15 @@ namespace Unity.BossRoom.Gameplay.Showcase
             foreach (var p in Profiles.Values.Where(x => x.Loaded).ToList())
             {
                 var partyBonus = PartyBonus(p);
+                // 미션 로그 — 처치한 때의 조건(오르기 전 레벨)과 받은 골드 · 경험치
+                var gold = Mathf.RoundToInt((boss ? GameData.BossGold : Random.Range(GameData.ImpGoldMin, GameData.ImpGoldMax + 1)) * p.GoldMult);
+                var exp = Mathf.RoundToInt((boss ? GameData.BossExp : GameData.ImpExp) * p.ExpMult * partyBonus);
+                if (GmEnabled) MissionLog("kill", $"\"by\":{LogWho(p)},\"npc\":{Q(npc.CharacterType.ToString())},\"gold\":{gold},\"exp\":{exp},\"party\":{PartyOf(p)?.Count ?? 1}");
                 if (boss)
                 {
                     p.P.BossKills++;
-                    GainGold(p, Mathf.RoundToInt(GameData.BossGold * p.GoldMult));
-                    GainExp(p, Mathf.RoundToInt(GameData.BossExp * p.ExpMult * partyBonus));
+                    GainGold(p, gold);
+                    GainExp(p, exp);
                     AddQuest(p, "daily_boss", 1);
                     var legendary = Random.value < 0.35f ? (Random.value < 0.5f ? "불꽃의 검" : "용비늘 갑옷") : "보스의 왕관 조각";
                     // 시험 서버 「/gm loot」 — 전리품을 고정했으면 그것만 준다
@@ -33,8 +37,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 else
                 {
                     p.P.TotalKills++;
-                    GainGold(p, Mathf.RoundToInt(Random.Range(GameData.ImpGoldMin, GameData.ImpGoldMax + 1) * p.GoldMult));
-                    GainExp(p, Mathf.RoundToInt(GameData.ImpExp * p.ExpMult * partyBonus));
+                    GainGold(p, gold);
+                    GainExp(p, exp);
                     AddQuest(p, "daily_imp", 1);
                     if (GmLoot != null) { if (GmLoot != "none") AddItem(p, GmLoot); }
                     else
@@ -58,6 +62,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 p.P.Exp -= GameData.ExpToNext(p.Data.CharacterLevel);
                 p.Data.CharacterLevel++;
                 Toast(p, $"레벨 업! Lv.{p.Data.CharacterLevel}");
+                if (GmEnabled) MissionLog("levelup", $"\"by\":{LogWho(p)}");
             }
             p.Dirty = true;
         }

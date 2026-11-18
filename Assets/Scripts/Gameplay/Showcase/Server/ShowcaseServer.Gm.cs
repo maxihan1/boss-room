@@ -34,6 +34,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
         public static void GmNote(ServerCharacter inflicter, ServerCharacter target, int hp)
         {
             if (!GmEnabled || hp == 0) return;
+            MissionLog(hp < 0 ? "hit" : "heal", $"\"from\":{LogWho(inflicter)},\"to\":{LogWho(target)},\"skill\":{Q(inflicter != null && !inflicter.IsNpc ? SeenOf(inflicter.OwnerClientId).Action : "-")},\"value\":{Math.Abs(hp)},\"hpBefore\":{(target != null ? target.HitPoints : 0)}");
             if (hp < 0 && inflicter != null && !inflicter.IsNpc) SeenOf(inflicter.OwnerClientId).Dealt = -hp;
             if (target == null || target.IsNpc) return;
             if (hp < 0) SeenOf(target.OwnerClientId).Taken = -hp; else SeenOf(target.OwnerClientId).Healed = hp;
@@ -43,6 +44,43 @@ namespace Unity.BossRoom.Gameplay.Showcase
         {
             if (!GmEnabled || who == null || who.IsNpc) return;
             if (GameDataSource.Instance.TryGetActionPrototypeByID(id, out var action)) SeenOf(who.OwnerClientId).Action = ActionName(action);
+        }
+
+        // 미션 로그 — 피해 · 회복 · 처치 · 아이템 · 레벨 업을 일어난 차례대로 한 줄씩 쌓고 시험 주소 /test/log 가 내준다.
+        // 「/gm stat」은 마지막 값 하나만 기억해 준비하는 사이 먼저 맞은 값이 읽혔고(받은 피해 12 자리에 13), 읽으려면 채팅 창을 열어야 했다.
+        // 줄에는 그때의 조건(레벨 · 직업 · 장비 · 던전 인원)과 결과 값만 적는다 — 게임이 셈한 배율은 안 적는다. 테스트가 기획서 공식으로 다시 셈해 견준다
+        const int k_LogMax = 5000;
+        static readonly List<string> s_Log = new List<string>();
+        static int s_LogDropped;
+
+        public static void MissionLog(string kind, string rest)
+        {
+            if (!GmEnabled) return;
+            // ponytail: 꽉 차면 맨 앞 줄을 뺀다(O(n)) — 줄이 훨씬 많아지면 둥근 버퍼로
+            if (s_Log.Count >= k_LogMax) { s_Log.RemoveAt(0); s_LogDropped++; }
+            s_Log.Add($"{{\"seq\":{s_LogDropped + s_Log.Count + 1},\"at\":{Q(DateTime.UtcNow.ToString("o"))},\"kind\":{Q(kind)},\"players\":{PlayerServerCharacter.GetPlayerServerCharacters().Count},{rest}}}");
+        }
+
+        /// <summary>since 번 줄 뒤의 줄 — 줄 번호는 서버가 켜진 뒤로 이어진다. clear 면 내준 뒤 비운다</summary>
+        static string MissionLogSince(int since, bool clear)
+        {
+            var lines = string.Join(",", s_Log.Skip(Math.Max(0, since - s_LogDropped)));
+            var last = s_LogDropped + s_Log.Count;
+            if (clear) { s_LogDropped = last; s_Log.Clear(); }
+            return $"{{\"ok\":true,\"last\":{last},\"lines\":[{lines}]}}";
+        }
+
+        static string LogWho(ServerCharacter c) => c == null ? "{\"npc\":\"-\"}" : c.IsNpc ? $"{{\"npc\":{Q(c.CharacterType.ToString())}}}" : LogWho(Of(c.OwnerClientId), c);
+
+        static string LogWho(Profile p, ServerCharacter c = null)
+        {
+            if (p == null) return "{\"user\":\"?\"}";
+            if (c == null) c = PlayerServerCharacter.GetPlayerServerCharacter(p.ClientId);
+            var job = "-";
+            // 플레이어 프리팹은 직업이 비어 있어 읽으면 던진다(로비)
+            try { if (c != null && c.CharacterClass != null) job = c.CharacterClass.DisplayedName; }
+            catch (Exception) { }
+            return $"{{\"user\":{Q(SessionName(p.ClientId))},\"level\":{p.Data.CharacterLevel},\"job\":{Q(job)},\"weapon\":{Q(p.Equipped(p.P.EquippedWeapon)?.Name ?? "-")},\"armor\":{Q(p.Equipped(p.P.EquippedArmor)?.Name ?? "-")},\"accessory\":{Q(p.Equipped(p.P.EquippedAccessory)?.Name ?? "-")}}}";
         }
 
         static string ActionName(Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? "-" : string.IsNullOrEmpty(a.Config.DisplayedName) ? a.name : a.Config.DisplayedName;
