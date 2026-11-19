@@ -1,4 +1,4 @@
-// 시연용 Boss Room 을 명령줄에서 Android APK · Linux 전용 서버 · 맥 시험 빌드로 굽는 진입점
+// 시연용 Boss Room 을 명령줄에서 Android APK · 윈도우 QA · Linux 전용 서버 · 맥 시험 빌드로 굽는 진입점
 using System;
 using System.Linq;
 using UnityEditor;
@@ -46,6 +46,20 @@ public static class ShowcaseBuild
         EditorUserBuildSettings.standaloneBuildSubtarget = StandaloneBuildSubtarget.Server;
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64);
         Build(BuildTarget.StandaloneLinux64, "Builds/linux-server/BossRoomServer.x86_64", (int)StandaloneBuildSubtarget.Server);
+    }
+
+    // VISION 윈도우 PC 에서 Test Commander 가 돌리는 QA 빌드 — control_cli instrument 뒤에 부른다
+    // Mono 는 Linux CI 에서 윈도우용으로 구울 수 있다(IL2CPP 는 윈도우 기계가 있어야 한다)
+    // 독점 전체화면 · 창을 놓쳤을 때 멈춤은 VISION 화면 캡처와 게임 명령을 멈춘다(Devicefarm ADR-061)
+    public static void WindowsQa()
+    {
+        PlayerSettings.productName = "Boss Room";
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+        PlayerSettings.fullScreenMode = UnityEngine.FullScreenMode.FullScreenWindow;
+        PlayerSettings.runInBackground = true;
+        EditorUserBuildSettings.standaloneBuildSubtarget = StandaloneBuildSubtarget.Player;
+        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+        Build(BuildTarget.StandaloneWindows64, "Builds/windows/BossRoom.exe", defines: new[] { "CONTROL_CLI" });
     }
 
     // 맥에서 서버 하나 · 화면 없는 접속기 하나를 띄워 접속을 확인하는 데만 쓴다

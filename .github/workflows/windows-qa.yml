@@ -1,0 +1,64 @@
+# 윈도우 QA 빌드(control_cli SDK)를 game-ci 로 굽고 내려받을 수 있게 올린다 — VISION 윈도우 PC 에 까는 zip(배포는 안 함)
+name: 윈도우 QA 빌드
+on:
+  push:
+    branches: [showcase, windows-qa]
+  workflow_dispatch:
+concurrency:
+  group: windows-qa-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+env:
+  UNITY_VERSION: 6000.3.10f1
+  CONTROL_CLI_REF: v0.8.0
+jobs:
+  windows:
+    runs-on: ubuntu-latest
+    steps:
+      - id: no
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          echo "build=${GITHUB_SHA::7}-$(TZ=Asia/Seoul date +%Y%m%d%H%M)" >> "$GITHUB_OUTPUT"
+          if [ -z "$UNITY_LICENSE" ]; then echo "UNITY_LICENSE 가 없습니다"; exit 1; fi
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json') }}
+          restore-keys: Library-StandaloneWindows64-
+      # 맥 전용 툴체인은 Linux 러너에 필요 없고 받다 깨질 수 있다(qa-deploy.yml 과 같다)
+      - run: jq 'del(.dependencies["com.unity.toolchain.macos-arm64-linux"])' Packages/manifest.json > m.json && mv m.json Packages/manifest.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: control_cli 넣기
+        run: |
+          git clone -q --depth 1 -b "$CONTROL_CLI_REF" https://github.com/maxihan1/control_cli.git "$RUNNER_TEMP/control_cli"
+          (cd "$RUNNER_TEMP/control_cli" && npm ci --silent && npm run build --silent)
+          node "$RUNNER_TEMP/control_cli/dist/main.js" instrument "$GITHUB_WORKSPACE" --ref "$CONTROL_CLI_REF"
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: StandaloneWindows64
+          buildMethod: ShowcaseBuild.WindowsQa
+          allowDirtyBuild: true
+          versioning: None
+      # 받은 zip 의 맨 위에 BossRoom.exe 가 온다 — 그대로 VISION 설치(zip) · 손으로 풀어 깔기 둘 다 된다
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bossroom-windows-qa-${{ steps.no.outputs.build }}
+          path: |
+            Builds/windows
+            !Builds/windows/*_BurstDebugInformation_DoNotShip
+          retention-days: 14
