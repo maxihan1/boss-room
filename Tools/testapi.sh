@@ -37,6 +37,7 @@ echo "== 내보내기 · 실패시키기 · 우편 · 새 계정"; c /test/kick 
 c /test/fail -d '{"path":"/api/getmailmessages","count":1}'; c /test/mail -d "$(j user qa_player3 pass "$P3" cmd "시험 첨부")"
 c /test/reset -d "$(j user qa_player4 pass "$P4" mode raw level 31)"; c /test/reset -d "$(j user qa_player4 pass "$P4" mode new)"
 c /test/bot/stop -d '{"all":true}'; sleep 2; c /test/state
+echo "== 방을 로비로(scene 이 CharSelect 여야 함)"; c /test/lobby; sleep 3; c /test/state
 echo "== 싼 아이템 — 3 골드에 사서 1 골드에 판다(200 → 197 → 198)"; c /test/reset -d "$(j user qa_player3 pass "$P3" mode base)"; c /test/bot/start -d "$(j user qa_player3 pass "$P3")"
 do_ qa_player3 "buy:조약돌"; do_ qa_player3 "gm:stat"; do_ qa_player3 "sell:조약돌"; do_ qa_player3 "gm:stat"; sleep 1
 CUT=9000 c "/test/bot/log?bot=qa_player3&clear=1" | python3 -c "import sys,re; [print('   ', m) for m in re.findall(r'\"Text\":\"([^\"]*)\"', sys.stdin.read()) if '골드=' in m or '조약돌' in m]"

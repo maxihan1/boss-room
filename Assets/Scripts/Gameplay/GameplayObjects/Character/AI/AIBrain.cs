@@ -97,6 +97,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character.AI
         public bool IsAppropriateFoe(ServerCharacter potentialFoe)
         {
             if (potentialFoe == null ||
+                potentialFoe.CharacterClass == null ||
                 potentialFoe.IsNpc ||
                 potentialFoe.LifeState != LifeState.Alive ||
                 potentialFoe.IsStealthy.Value)

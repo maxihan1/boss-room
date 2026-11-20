@@ -207,6 +207,12 @@ namespace Unity.BossRoom.Gameplay.GameState
                 }
             }
 
+            // 영웅을 고르지 않고 진행 중인 던전에 들어온 접속자(로비를 안 거친 새 로그인)는 Guid 가 비어 직업 없는 캐릭터가 됐다 — 무작위 영웅을 준다
+            if (persistentPlayer.NetworkAvatarGuidState.AvatarGuid.Value.ToGuid() == Guid.Empty)
+            {
+                persistentPlayer.NetworkAvatarGuidState.SetRandomAvatar();
+            }
+
             // instantiate new NetworkVariables with a default value to ensure they're ready for use on OnNetworkSpawn
             networkAvatarGuidState.AvatarGuid = new NetworkVariable<NetworkGuid>(persistentPlayer.NetworkAvatarGuidState.AvatarGuid.Value);
 
@@ -251,8 +257,8 @@ namespace Unity.BossRoom.Gameplay.GameState
             // Check the life state of all players in the scene
             foreach (var serverCharacter in PlayerServerCharacter.GetPlayerServerCharacters())
             {
-                // if any player is alive just return
-                if (serverCharacter && serverCharacter.LifeState == LifeState.Alive)
+                // if any player is alive just return — 직업 없는 캐릭터는 셈하지 않는다(그것이 「살아 있음」으로 남아 던전이 끝나지 않았다)
+                if (serverCharacter && serverCharacter.CharacterClass != null && serverCharacter.LifeState == LifeState.Alive)
                 {
                     return;
                 }
