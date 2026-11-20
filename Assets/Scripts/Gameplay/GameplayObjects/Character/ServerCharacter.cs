@@ -34,7 +34,8 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
         {
             get
             {
-                if (m_CharacterClass == null)
+                // 영웅을 못 고른 플레이어(빈 Guid)는 직업이 없다 — 예전엔 여기서 매 프레임 NullReferenceException 이 나 적 AI 가 멈췄다
+                if (m_CharacterClass == null && m_State.RegisteredAvatar != null)
                 {
                     m_CharacterClass = m_State.RegisteredAvatar.CharacterClass;
                 }

@@ -130,7 +130,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
             {
                 case "/test/state":
                     var players = Profiles.Values.Where(p => p.Loaded).Select(p => $"{{\"user\":{Q(SessionName(p.ClientId))},\"name\":{Q(p.Name)},\"level\":{p.Data.CharacterLevel},\"bot\":{(s_Bots.Values.Any(b => b.ClientId == p.ClientId) ? "true" : "false")}}}");
-                    return $"{{\"ok\":true,\"players\":[{string.Join(",", players)}],\"bots\":[{string.Join(",", s_Bots.Keys.Select(Q))}]}}";
+                    // 장면 · 접속 수 — 프로필을 못 불러온 접속(players 에 안 보임)이 던전에 남았는지 가려 본다
+                    return $"{{\"ok\":true,\"scene\":{Q(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)},\"clients\":{NetworkManager.Singleton.ConnectedClientsIds.Count},\"players\":[{string.Join(",", players)}],\"bots\":[{string.Join(",", s_Bots.Keys.Select(Q))}]}}";
                 case "/test/bot/start": return await BotStart(r);
                 case "/test/bot/do": await BotDo(BotOf(r), r.cmd ?? ""); return k_Ok;
                 case "/test/bot/log":
@@ -155,6 +156,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 case "/test/mail": return await RawMail(r);
                 case "/test/prep": return await Prep();
                 case "/test/log": return MissionLogSince(r.since, r.all);
+                case "/test/lobby": return Lobby();
                 default: throw new TestError($"모르는 주소 {path}");
             }
         }
@@ -285,11 +287,20 @@ namespace Unity.BossRoom.Gameplay.Showcase
             return $"{{\"ok\":true,\"characters\":{rows.Count}}}";
         }
 
+        // 방을 로비(캐릭터 선택)로 — 던전이 안 끝나 새 로그인이 로비 대신 던전으로 들어가는 상태를 케이스가 스스로 푼다. 봇을 끄고 결과 화면을 건너뛴다
+        static string Lobby()
+        {
+            foreach (var b in s_Bots.Values.ToList()) Kill(b);
+            var from = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (from != "CharSelect") Unity.Multiplayer.Samples.Utilities.SceneLoaderWrapper.Instance.LoadScene("CharSelect", useNetworkSceneManager: true);
+            return $"{{\"ok\":true,\"from\":{Q(from)}}}";
+        }
+
         // 실행 전 준비 — Commander 가 실행마다 한 번 부른다(본문은 보지 않는다). 앞 실행이 남긴 봇 · 걸어 둔 실패 · 전리품 고정을 치우고
         // BOSSROOM_PREP_USERS(「아이디:비밀번호,아이디:비밀번호」) 계정을 기준 상태로 되돌린다 — 앞 실행이 올린 레벨 · 골드가 다음 실행의 기대값을 깨지 않게
         static async Task<string> Prep()
         {
-            foreach (var b in s_Bots.Values.ToList()) Kill(b);
+            Lobby();
             GameApi.FailNext.Clear();
             GmLoot = null;
             var done = new List<string>();

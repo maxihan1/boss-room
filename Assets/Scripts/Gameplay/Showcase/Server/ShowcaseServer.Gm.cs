@@ -123,6 +123,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 case "skill":
                     foreach (var c in GameDataSource.Instance.CharacterDataByType.Values.Where(c => c.IsNpc == (what == "monster")))
                         GmLine(p, $"data {what} {(c.CharacterType switch { CharacterTypeEnum.Imp => "임프", CharacterTypeEnum.VandalImp => "던지는 임프", CharacterTypeEnum.ImpBoss => "보스 임프", _ => c.DisplayedName })}({c.CharacterType}) 체력={c.BaseHP.Value} 스킬={ActionRow(c.Skill1)},{ActionRow(c.Skill2)},{ActionRow(c.Skill3)}");
+                    // item · bag 처럼 끝 줄을 찍는다 — 없으면 읽는 쪽이 언제 다 왔는지 몰라 줄이 멈출 때까지 기다렸다
+                    GmLine(p, $"data {what} 끝 {GameDataSource.Instance.CharacterDataByType.Values.Count(x => x.IsNpc == (what == "monster"))}종");
                     return true;
                 case "item":
                     // 아이템 표 — 기획서 4.1 표와 같은 낱말(분류 · 등급)로 낸다. 효과는 비율 그대로(0.05 = +5%)
