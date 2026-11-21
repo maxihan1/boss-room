@@ -40,12 +40,13 @@ namespace Unity.BossRoom.Gameplay.Actions
             m_LastUsedTimestamps = new Dictionary<ActionID, float>();
         }
 
-        /// <summary>지금 돌고 있는(대기열 · 비차단) 그 종류 행동 하나 — 없으면 null</summary>
-        public T FindRunning<T>() where T : Action
+        /// <summary>GetBuffedValue 가 배율을 곱하는 행동(대기열 맨 앞 · 모든 비차단) 가운데 그 종류 전부 — 방패처럼 겹쳐 켜지면 여럿이다</summary>
+        public List<T> BuffingActions<T>() where T : Action
         {
-            foreach (var a in m_Queue) if (a is T t) return t;
-            foreach (var a in m_NonBlockingActions) if (a is T t) return t;
-            return null;
+            var found = new List<T>();
+            if (m_Queue.Count > 0 && m_Queue[0] is T head) found.Add(head);
+            foreach (var a in m_NonBlockingActions) if (a is T t) found.Add(t);
+            return found;
         }
 
         /// <summary>

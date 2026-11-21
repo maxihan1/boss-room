@@ -35,9 +35,11 @@ namespace Unity.BossRoom.Gameplay.Showcase
         {
             if (!GmEnabled || hp == 0) return;
             // 맞은 플레이어가 방패(ChargedShieldAction)를 쓰는 중이면 그 순간 충전률 c 도 「조건」으로 적는다 — 받는 피해 배율 1 − (0.5 + c²/2) 를 테스트가 줄마다 다시 셈한다.
-            // 맞으면 충전이 먼저 멈추고(AttackedByEnemy) 그 값으로 배율을 셈한 뒤 여기 오니, 적는 c 가 배율에 쓴 c 와 같다
-            var shield = hp < 0 && target != null && !target.IsNpc ? target.ActionPlayer.FindRunning<Unity.BossRoom.Gameplay.Actions.ChargedShieldAction>() : null;
-            MissionLog(hp < 0 ? "hit" : "heal", $"\"from\":{LogWho(inflicter)},\"to\":{LogWho(target)},\"skill\":{Q(inflicter != null && !inflicter.IsNpc ? SeenOf(inflicter.OwnerClientId).Action : "-")},\"value\":{Math.Abs(hp)},\"hpBefore\":{(target != null ? target.HitPoints : 0)}{(shield != null ? $",\"shield\":{F(shield.PercentChargedUp)}" : "")}");
+            // 맞으면 충전이 먼저 멈추고(AttackedByEnemy) 그 값으로 배율을 셈한 뒤 여기 오니, 적는 c 가 배율에 쓴 c 와 같다.
+            // 방패는 효과(5초)가 재사용(1.2초)보다 길어 겹쳐 켜질 수 있고, 겹치면 배율을 곱한다(원래 Boss Room · BRM-REQ-103) — 배율에 든 방패의 c 를 모두 배열로 적는다
+            var shields = hp < 0 && target != null && !target.IsNpc ? target.ActionPlayer.BuffingActions<Unity.BossRoom.Gameplay.Actions.ChargedShieldAction>() : null;
+            var shieldField = shields is { Count: > 0 } ? $",\"shield\":[{string.Join(",", shields.Select(x => F(x.PercentChargedUp)))}]" : "";
+            MissionLog(hp < 0 ? "hit" : "heal", $"\"from\":{LogWho(inflicter)},\"to\":{LogWho(target)},\"skill\":{Q(inflicter != null && !inflicter.IsNpc ? SeenOf(inflicter.OwnerClientId).Action : "-")},\"value\":{Math.Abs(hp)},\"hpBefore\":{(target != null ? target.HitPoints : 0)}{shieldField}");
             if (hp < 0 && inflicter != null && !inflicter.IsNpc) SeenOf(inflicter.OwnerClientId).Dealt = -hp;
             if (target == null || target.IsNpc) return;
             if (hp < 0) SeenOf(target.OwnerClientId).Taken = -hp; else SeenOf(target.OwnerClientId).Healed = hp;
