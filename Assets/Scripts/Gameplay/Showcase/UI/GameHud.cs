@@ -15,6 +15,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
         public static GameHud Instance { get; private set; }
         public Transform CanvasRoot { get; private set; }
 
+        // 창의 어두운 바탕이 메뉴까지 덮으면 다른 메뉴를 눌러도 창만 닫힌다 — 창을 열 때마다 메뉴를 맨 위로 올린다
+        public void RaiseMenu() { if (m_Menu != null) m_Menu.SetAsLastSibling(); }
+
         TextMeshProUGUI m_Name, m_Gold, m_ExpText, m_Potion;
         Image m_Exp;
         RectTransform m_Bar, m_Menu, m_Toasts, m_PotionButton, m_Chat;
