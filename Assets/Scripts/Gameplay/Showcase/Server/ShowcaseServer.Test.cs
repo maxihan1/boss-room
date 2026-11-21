@@ -204,7 +204,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
         {
             var parts = cmd.Split(new[] { ':' }, 2);
             var verb = parts[0].Trim();
-            var arg = parts.Length > 1 ? parts[1].Trim() : "";
+            var raw = parts.Length > 1 ? parts[1] : "";
+            var arg = raw.Trim();
             if (bot.ClientId is not { } id || Of(id) is not { } p) throw new TestError($"{bot.Name} 봇이 접속 중이 아닙니다");
             long Item() => p.Bag.FirstOrDefault(x => x.ItemName == arg)?.ItemInstanceId ?? 0;
             var req = new Req { Name = arg, Text = arg };
@@ -227,6 +228,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 case "claim": type = "quest_claim"; break;
                 case "say": case "psay": case "gsay":
                     type = "chat";
+                    // 채팅 글은 자르지 않고 그대로 넘긴다 — 앞뒤 공백을 자른 뒤 100자를 세는 건 채팅 처리(REQ-236)라, 여기서 먼저 자르면 그 규칙을 봇으로 잴 수 없다
+                    req.Text = raw;
                     req.Name = verb == "psay" ? "파티" : verb == "gsay" ? "길드" : "전체";
                     break;
                 case "friend_remove": case "guild_kick": req.Id = await IdByName(arg); break;
