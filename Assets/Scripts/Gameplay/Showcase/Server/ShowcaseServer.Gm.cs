@@ -116,7 +116,11 @@ namespace Unity.BossRoom.Gameplay.Showcase
         // 공통 행동은 원래 이름(Revive 등) 대신 화면 · 기획서 낱말로 찍는다
         static string CommonRow(string name, Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? $"{name}(-)" : $"{name}(값 {a.Config.Amount} · 사거리 {F(a.Config.Range)} · 재사용 {F(a.Config.ReuseTimeSeconds)}초)";
 
-        static string ActionRow(Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? "-" : $"{ActionName(a)}(값 {a.Config.Amount} · 사거리 {F(a.Config.Range)} · 재사용 {F(a.Config.ReuseTimeSeconds)}초)";
+        static string ActionRow(Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? "-" : $"{ActionName(a)}(값 {ActionAmount(a)} · 사거리 {F(a.Config.Range)} · 재사용 {F(a.Config.ReuseTimeSeconds)}초)";
+
+        // 투사체 스킬(화살 쏘기 · 마력탄 등)은 실제 피해가 Amount 가 아니라 투사체 설정(Projectiles[].Damage)에 있다 — 그 값을 찍는다
+        static int ActionAmount(Unity.BossRoom.Gameplay.Actions.Action a) =>
+            a.Config.Projectiles != null && a.Config.Projectiles.Length > 0 ? a.Config.Projectiles[0].Damage : a.Config.Amount;
 
         static bool GmData(Profile p, string what)
         {
