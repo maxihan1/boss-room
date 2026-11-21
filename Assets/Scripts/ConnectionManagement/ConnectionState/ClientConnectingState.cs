@@ -73,7 +73,9 @@ namespace Unity.BossRoom.ConnectionManagement
             {
                 Debug.LogError("Error connecting client, see following exception");
                 Debug.LogException(e);
-                StartingClientFailed();
+                // 다시 연결하는 중(ClientReconnectingState)이면 한 번의 실패로 세고 남은 시도를 이어 간다 — 바로 StartingClientFailed 로 가면
+                // 네트워크가 막 돌아오는 순간 StartClient 가 실패할 때 남은 시도 없이 「접속 실패」 창과 로그인 화면으로 끝났다
+                OnClientDisconnect(0);
                 throw;
             }
         }
