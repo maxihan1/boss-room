@@ -5,13 +5,22 @@ namespace Unity.BossRoom.Gameplay.Showcase
 {
     public static class InviteDialog
     {
+        // 서버는 한 사람에게 파티 초대를 하나만 둔다(새 초대가 오면 앞 초대를 지운다) — 화면도 앞 파티 초대 창을 닫아야 지워진 초대에 「수락」을 누르지 않는다
+        static GameObject s_PartyDialog;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Init() => SocialState.Invited += Show;
 
         static void Show(Invite invite)
         {
             if (GameHud.Instance == null) return;
+            if (invite.Kind == "party" && s_PartyDialog != null)
+            {
+                s_PartyDialog.SetActive(false);
+                Object.Destroy(s_PartyDialog);
+            }
             var root = UIKit.Rect(GameHud.Instance.CanvasRoot, "Invite", new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            if (invite.Kind == "party") s_PartyDialog = root.gameObject;
             UIKit.Stretch(root);
             UIKit.Shade(root);
             var title = invite.Kind switch { "friend" => "친구 신청", "party" => "파티 초대", _ => "길드 초대" };
