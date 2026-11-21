@@ -162,6 +162,16 @@ namespace Unity.BossRoom.Gameplay.Showcase
             foreach (var p in Profiles.Values.Where(p => p.Loaded && p.Dirty).ToList()) _ = Persist(p);
         }
 
+        // 같은 사람의 같은 요청이 끝나기 전에 또 오면(빠른 두 번 누름) 버린다 — 확인과 저장 사이에 게임 API 를 기다리는 동안 두 번째 요청도 확인을 통과해 두 번 처리됐다
+        static readonly HashSet<string> s_Busy = new HashSet<string>();
+        static async Task Once(Profile p, string what, Func<Task> work)
+        {
+            var key = $"{p.ClientId}:{what}";
+            if (!s_Busy.Add(key)) return;
+            try { await work(); }
+            finally { s_Busy.Remove(key); }
+        }
+
         static async Task Persist(Profile p)
         {
             p.Dirty = false;

@@ -17,8 +17,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
         {
             ShowcaseNet.OnServer("mail_list", (id, json) => { if (Of(id) is { } p) _ = SendMail(p); });
             ShowcaseNet.OnServer("mail_read", (id, json) => { if (Of(id) is { } p) _ = ReadMail(p, JsonUtility.FromJson<Req>(json)); });
-            ShowcaseNet.OnServer("mail_take", (id, json) => { if (Of(id) is { } p) _ = TakeMail(p, JsonUtility.FromJson<Req>(json)); });
-            ShowcaseNet.OnServer("mail_take_all", (id, json) => { if (Of(id) is { } p) _ = TakeAll(p); });
+            ShowcaseNet.OnServer("mail_take", (id, json) => { if (Of(id) is { } p) _ = Once(p, "mail", () => TakeMail(p, JsonUtility.FromJson<Req>(json))); });
+            ShowcaseNet.OnServer("mail_take_all", (id, json) => { if (Of(id) is { } p) _ = Once(p, "mail", () => TakeAll(p)); });
             ShowcaseNet.OnServer("mail_delete", (id, json) => { if (Of(id) is { } p) _ = DeleteMail(p, JsonUtility.FromJson<Req>(json)); });
         }
 
