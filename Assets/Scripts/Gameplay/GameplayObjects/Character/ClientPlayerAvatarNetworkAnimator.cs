@@ -33,10 +33,10 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
         {
             base.OnNetworkDespawn();
             m_AvatarInstantiated = false;
-            var avatarGraphics = Animator.transform.GetChild(0);
-            if (avatarGraphics != null)
+            // 화면 없는 서버는 겉모습을 안 만들어 자식이 없다 — 그냥 GetChild(0) 하면 접속이 끊길 때마다 예외가 난다
+            if (Animator.transform.childCount > 0)
             {
-                Destroy(avatarGraphics.gameObject);
+                Destroy(Animator.transform.GetChild(0).gameObject);
             }
         }
 
