@@ -309,6 +309,9 @@ namespace Unity.BossRoom.DebugCheats
 #else
         void Awake()
         {
+            // 행동 버튼 말풍선(UITooltipPopup)이 이 치트 창 안에 들어 있다 — 창째 끄면 릴리스 빌드에서 말풍선이 절대 안 뜬다. 끄기 전에 같은 캔버스로 꺼내 둔다
+            foreach (var popup in m_DebugCheatsPanel.GetComponentsInChildren<Unity.BossRoom.Gameplay.UI.UITooltipPopup>(true))
+                popup.transform.SetParent(m_DebugCheatsPanel.transform.parent, false);
             m_DebugCheatsPanel.SetActive(false);
         }
 #endif
