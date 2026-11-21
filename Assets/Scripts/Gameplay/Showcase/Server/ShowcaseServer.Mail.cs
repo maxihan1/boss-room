@@ -91,12 +91,13 @@ namespace Unity.BossRoom.Gameplay.Showcase
             if (FindMail(p, (int)r.Id) is not { } m || m.mail.IsRead) return;
             m.mail.IsRead = true;
             await GameApi.Post("/api/savemailmessage", new SaveDataRequest { Id = m.row.id, SaveData = JsonUtility.ToJson(m.mail) });
-            await SendMail(p);
+            // 목록은 다시 보내지 않는다 — 우편함을 열자마자 목록이 통째로 다시 그려져, 그 순간 누른 「받기」가 사라졌다. 읽음 표시는 다음에 열 때 바뀐다
             Push(p);
         }
 
         static async Task TakeMail(Profile p, Req r)
         {
+            Debug.Log($"[mail] take {r.Id} {p.Name}");
             await RefreshMail(p, announce: false);
             if (FindMail(p, (int)r.Id) is not { } m || !HasAttachment(m.mail)) { Toast(p, "받을 첨부가 없습니다", true); return; }
             var ids = m.mail.AttachmentSlots.SelectMany(s => s.ItemInstanceIds).ToList();
