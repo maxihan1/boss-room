@@ -23,6 +23,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
             w.Body = UIKit.Panel(root, title, new Vector2(0.5f, 0.5f), new Vector2(0, -20), size);
             UIKit.Button(w.Body, "닫기", new Vector2(1f, 0f), new Vector2(-110, 56), new Vector2(170, 70), w.Close, 28);
             s_Open = w;
+            if (GameHud.Instance != null) GameHud.Instance.RaiseMenu();
             ShowcaseClient.ProfileChanged += w.OnProfile;
             if (ShowcaseClient.Profile != null) w.Render(ShowcaseClient.Profile);
             return w;
