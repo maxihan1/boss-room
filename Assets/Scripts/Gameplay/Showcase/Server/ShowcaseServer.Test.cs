@@ -131,7 +131,10 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 case "/test/state":
                     var players = Profiles.Values.Where(p => p.Loaded).Select(p => $"{{\"user\":{Q(SessionName(p.ClientId))},\"name\":{Q(p.Name)},\"level\":{p.Data.CharacterLevel},\"bot\":{(s_Bots.Values.Any(b => b.ClientId == p.ClientId) ? "true" : "false")}}}");
                     // 장면 · 접속 수 — 프로필을 못 불러온 접속(players 에 안 보임)이 던전에 남았는지 가려 본다
-                    return $"{{\"ok\":true,\"scene\":{Q(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)},\"clients\":{NetworkManager.Singleton.ConnectedClientsIds.Count},\"players\":[{string.Join(",", players)}],\"bots\":[{string.Join(",", s_Bots.Keys.Select(Q))}]}}";
+                    // 로비 자리 — 끊긴 접속의 자리가 남아 「준비!」를 눌러도 던전이 안 열리는지 본다(seat 는 -1 = 안 앉음)
+                    var lobby = UnityEngine.Object.FindFirstObjectByType<ServerCharSelectState>();
+                    var seats = lobby == null ? "" : string.Join(",", Enumerable.Range(0, lobby.networkCharSelection.sessionPlayers.Count).Select(i => lobby.networkCharSelection.sessionPlayers[i]).Select(s => $"{{\"client\":{s.ClientId},\"name\":{Q(s.PlayerName)},\"seat\":{s.SeatIdx},\"state\":{Q(s.SeatState.ToString())}}}"));
+                    return $"{{\"ok\":true,\"scene\":{Q(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)},\"clients\":{NetworkManager.Singleton.ConnectedClientsIds.Count},\"seats\":[{seats}],\"players\":[{string.Join(",", players)}],\"bots\":[{string.Join(",", s_Bots.Keys.Select(Q))}]}}";
                 case "/test/bot/start": return await BotStart(r);
                 case "/test/bot/do": await BotDo(BotOf(r), r.cmd ?? ""); return k_Ok;
                 case "/test/bot/log":
@@ -292,8 +295,11 @@ namespace Unity.BossRoom.Gameplay.Showcase
         {
             foreach (var b in s_Bots.Values.ToList()) Kill(b);
             var from = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            // 이미 로비면 끊긴 접속의 자리만 뺀다 — 남은 자리 하나가 던전을 막는다
+            var dropped = 0;
             if (from != "CharSelect") Unity.Multiplayer.Samples.Utilities.SceneLoaderWrapper.Instance.LoadScene("CharSelect", useNetworkSceneManager: true);
-            return $"{{\"ok\":true,\"from\":{Q(from)}}}";
+            else dropped = UnityEngine.Object.FindFirstObjectByType<ServerCharSelectState>()?.DropStaleSeats() ?? 0;
+            return $"{{\"ok\":true,\"from\":{Q(from)},\"dropped\":{dropped}}}";
         }
 
         // 실행 전 준비 — Commander 가 실행마다 한 번 부른다(본문은 보지 않는다). 앞 실행이 남긴 봇 · 걸어 둔 실패 · 전리품 고정을 치우고

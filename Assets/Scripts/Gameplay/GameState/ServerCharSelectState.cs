@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Unity.BossRoom.ConnectionManagement;
 using Unity.BossRoom.Gameplay.GameplayObjects;
 using Unity.BossRoom.Infrastructure;
@@ -134,6 +135,7 @@ namespace Unity.BossRoom.Gameplay.GameState
         /// </summary>
         void CloseSessionIfReady()
         {
+            DropStaleSeats();
             // 시연 전용 서버엔 방장이 없다 — 마지막 사람이 로비를 나가 0명이 되면 빈 던전을 열지 않는다
             if (networkCharSelection.sessionPlayers.Count == 0) return;
 
@@ -151,6 +153,23 @@ namespace Unity.BossRoom.Gameplay.GameState
 
             // Delay a few seconds to give the UI time to react, then switch scenes
             m_WaitToEndSessionCoroutine = StartCoroutine(WaitToEndSession());
+        }
+
+        /// <summary>
+        /// 이미 끊긴 접속의 자리를 뺀다 — 끊김 알림을 놓친 자리가 남으면 「모두 준비」가 영영 안 차 던전이 안 열렸다(2026-11-21 Test Commander 정식 실행).
+        /// 뺀 수를 돌려준다. 시험 주소 /test/lobby 도 부른다
+        /// </summary>
+        public int DropStaleSeats()
+        {
+            var connected = NetworkManager.Singleton.ConnectedClientsIds;
+            var dropped = 0;
+            for (int i = networkCharSelection.sessionPlayers.Count - 1; i >= 0; --i)
+            {
+                if (connected.Contains(networkCharSelection.sessionPlayers[i].ClientId)) continue;
+                networkCharSelection.sessionPlayers.RemoveAt(i);
+                dropped++;
+            }
+            return dropped;
         }
 
         /// <summary>
