@@ -1,6 +1,7 @@
 using System;
 using Unity.BossRoom.Gameplay.GameplayObjects;
 using Unity.BossRoom.Gameplay.GameplayObjects.Character;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Unity.BossRoom.Gameplay.Actions
@@ -27,13 +28,30 @@ namespace Unity.BossRoom.Gameplay.Actions
 
         private bool m_Dashed;
 
+        // ActionUtils 의 「너무 가깝다」 거리(k_VeryCloseTeleportRange = 1 + 1)와 같다
+        const float k_AdjacentTargetRange = 2f;
+
         public override bool OnStart(ServerCharacter serverCharacter)
         {
-            // remember the exact spot we'll stop.
-            m_TargetSpot = ActionUtils.GetDashDestination(serverCharacter.physicsWrapper.Transform, Data.Position, true, Config.Range, Config.Range);
+            var me = serverCharacter.physicsWrapper.Transform;
+            // 고른 대상이 바로 옆(2m 안)이면 그 자리에서 대상을 보고 친다 — GetDashDestination 은 너무 가까운 목적지를 「바라보는 쪽 20m」로 바꿔,
+            // 휴대폰(대상을 고르고 버튼)에서는 붙어 있는 적을 지나쳐 늘 헛쳤다. 마우스로 땅을 찍던 원래 조작을 전제로 한 동작이다
+            if (Data.TargetIds is { Length: > 0 } && NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(Data.TargetIds[0], out var target)
+                && Vector3.Distance(me.position, target.transform.position) <= k_AdjacentTargetRange)
+            {
+                m_TargetSpot = me.position;
+                var face = target.transform.position;
+                face.y = me.position.y;
+                me.LookAt(face);
+            }
+            else
+            {
+                // remember the exact spot we'll stop.
+                m_TargetSpot = ActionUtils.GetDashDestination(me, Data.Position, true, Config.Range, Config.Range);
 
-            // snap to face our destination. This ensures the client visualization faces the right way while "pretending" to dash
-            serverCharacter.physicsWrapper.Transform.LookAt(m_TargetSpot);
+                // snap to face our destination. This ensures the client visualization faces the right way while "pretending" to dash
+                me.LookAt(m_TargetSpot);
+            }
 
             serverCharacter.serverAnimationHandler.NetworkAnimator.SetTrigger(Config.Anim);
 
