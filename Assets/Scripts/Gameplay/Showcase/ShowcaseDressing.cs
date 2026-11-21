@@ -38,6 +38,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
             // 던전 왼쪽 위 초상화(파티 HUD)는 원래 화면 끝에 붙어 있어 휴대폰 카메라 구멍 · 둥근 모서리 쪽(안전 영역 밖)에 걸린다 — 안전 영역 안으로 민다
             if (GameObject.Find("Party HUD") is { } party && party.transform is RectTransform partyRect && party.GetComponentInParent<Canvas>() is { } hudCanvas && hudCanvas.scaleFactor > 0f)
                 partyRect.anchoredPosition += new Vector2(Screen.safeArea.xMin / hudCanvas.scaleFactor, 0f);
+            // 로비 영웅 자리 카드는 원래 화면 아래 끝에 걸쳐 누르는 칸(ClickInteract)이 몇 px 화면 밖으로 나간다 — 안전 영역 아래 여백 + 조금 위로 올린다
+            if (GameObject.Find("PlayerSeats") is { } seats && seats.transform is RectTransform seatsRect && seats.GetComponentInParent<Canvas>() is { } lobbyCanvas && lobbyCanvas.scaleFactor > 0f)
+                seatsRect.anchoredPosition += new Vector2(0f, Screen.safeArea.yMin / lobbyCanvas.scaleFactor + 12f);
             foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
                 // 접속 실패 같은 안내 창은 시연 화면(순서 100)보다 위에 떠야 한다
