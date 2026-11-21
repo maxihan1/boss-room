@@ -51,6 +51,7 @@ namespace Unity.BossRoom.Gameplay.UI
 
         void Show()
         {
+            gameObject.SetActive(true);
             m_CanvasGroup.alpha = 1f;
             m_CanvasGroup.blocksRaycasts = true;
             m_IsDisplaying = true;
@@ -61,6 +62,8 @@ namespace Unity.BossRoom.Gameplay.UI
             m_CanvasGroup.alpha = 0f;
             m_CanvasGroup.blocksRaycasts = false;
             m_IsDisplaying = false;
+            // 투명하게만 두면 닫은 창(과 그 「확인」 버튼)이 켜진 채 남아, 화면을 읽는 쪽(자동 테스트 · 접근성)은 창이 아직 떠 있다고 본다
+            gameObject.SetActive(false);
         }
     }
 }
