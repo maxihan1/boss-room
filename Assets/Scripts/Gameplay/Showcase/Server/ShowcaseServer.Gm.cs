@@ -270,6 +270,13 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     ResetDailyIfNeeded(p);
                     done = "quest reset";
                     break;
+                case "quest" when arg == "done":
+                    // 오늘 일일 퀘스트를 모두 목표까지 채운다(보상은 안 받은 그대로) — 임프 30마리를 실제로 잡으면 케이스 준비가 100초를 넘었다.
+                    // 실제로 채울 때와 같은 길(AddQuest)이라 「퀘스트 완료」 알림도 같이 뜨고, 이미 채웠거나 받은 퀘스트는 건너뛴다
+                    ResetDailyIfNeeded(p);
+                    foreach (var def in GameData.DailyQuests) AddQuest(p, def.Id, def.Target);
+                    done = "quest done";
+                    break;
                 case "stat":
                     GmStat(p, me);
                     done = "stat";
@@ -278,7 +285,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
                     done = $"data {arg}";
                     break;
                 default:
-                    Toast(p, "[GM] 쓸 수 있는 명령: killall · killboss · god · heal · faint · hp <n> · tp boss|switch · spawn imp|thrower|boss|pot(던전 안) · exp <n> · level <n> · gold <n> · loot <아이템|none|off> · quest reset · stat · data monster|skill|item|bag", true);
+                    Toast(p, "[GM] 쓸 수 있는 명령: killall · killboss · god · heal · faint · hp <n> · tp boss|switch · spawn imp|thrower|boss|pot(던전 안) · exp <n> · level <n> · gold <n> · loot <아이템|none|off> · quest reset|done · stat · data monster|skill|item|bag", true);
                     return true;
             }
             p.Dirty = true;
