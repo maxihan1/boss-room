@@ -87,7 +87,8 @@ namespace Unity.BossRoom.Gameplay.Actions
             var positionConstraint = heavyNetworkObject.GetComponent<PositionConstraint>();
             if (positionConstraint)
             {
-                if (parent.TryGetComponent(out ServerCharacter serverCharacter))
+                // 화면 없는 서버에는 캐릭터 겉모습(손 위치)이 없다 — 들기는 이미 끝났으니 손에 붙이는 것만 건너뛴다
+                if (parent.TryGetComponent(out ServerCharacter serverCharacter) && serverCharacter.clientCharacter.CharacterSwap != null)
                 {
                     var constraintSource = new ConstraintSource()
                     {

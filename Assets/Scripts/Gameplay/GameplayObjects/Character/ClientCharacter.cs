@@ -291,7 +291,8 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
             //and calls a method of the same name on a component on the same GameObject as the Animator. See the "attack1" Animation Clip as one
             //example of where this is configured.
 
-            m_ClientActionViz.OnAnimEvent(id);
+            // 화면 없는 서버도 애니메이션을 돌려 이벤트가 오지만 화면 연출(m_ClientActionViz)은 클라이언트에만 있다
+            m_ClientActionViz?.OnAnimEvent(id);
         }
 
         public bool IsAnimating()
