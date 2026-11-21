@@ -113,6 +113,9 @@ namespace Unity.BossRoom.Gameplay.Showcase
             GmLine(p, $"stat 직업={c.DisplayedName} 체력={me.HitPoints}/{c.BaseHP.Value} 위치={F(at.x)},{F(at.z)} 스킬={ActionName(c.Skill1)},{ActionName(c.Skill2)},{ActionName(c.Skill3)}");
         }
 
+        // 공통 행동은 원래 이름(Revive 등) 대신 화면 · 기획서 낱말로 찍는다
+        static string CommonRow(string name, Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? $"{name}(-)" : $"{name}(값 {a.Config.Amount} · 사거리 {F(a.Config.Range)} · 재사용 {F(a.Config.ReuseTimeSeconds)}초)";
+
         static string ActionRow(Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? "-" : $"{ActionName(a)}(값 {a.Config.Amount} · 사거리 {F(a.Config.Range)} · 재사용 {F(a.Config.ReuseTimeSeconds)}초)";
 
         static bool GmData(Profile p, string what)
@@ -123,6 +126,12 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 case "skill":
                     foreach (var c in GameDataSource.Instance.CharacterDataByType.Values.Where(c => c.IsNpc == (what == "monster")))
                         GmLine(p, $"data {what} {(c.CharacterType switch { CharacterTypeEnum.Imp => "임프", CharacterTypeEnum.VandalImp => "던지는 임프", CharacterTypeEnum.ImpBoss => "보스 임프", _ => c.DisplayedName })}({c.CharacterType}) 체력={c.BaseHP.Value} 스킬={ActionRow(c.Skill1)},{ActionRow(c.Skill2)},{ActionRow(c.Skill3)}");
+                    // 직업과 상관없는 공통 행동(부활 · 들기 · 내려놓기)도 같은 꼴로 — 기획서가 그 값(부활 체력 · 사거리 · 재사용)을 적는데 읽을 길이 없었다
+                    if (what == "skill")
+                    {
+                        var g = GameDataSource.Instance;
+                        GmLine(p, $"data skill 공통 행동 스킬={CommonRow("부활", g.ReviveActionPrototype)},{CommonRow("들기", g.PickUpActionPrototype)},{CommonRow("내려놓기", g.DropActionPrototype)}");
+                    }
                     // item · bag 처럼 끝 줄을 찍는다 — 없으면 읽는 쪽이 언제 다 왔는지 몰라 줄이 멈출 때까지 기다렸다
                     GmLine(p, $"data {what} 끝 {GameDataSource.Instance.CharacterDataByType.Values.Count(x => x.IsNpc == (what == "monster"))}종");
                     return true;
