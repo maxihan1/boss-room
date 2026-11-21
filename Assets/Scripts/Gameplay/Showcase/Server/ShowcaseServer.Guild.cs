@@ -17,7 +17,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         static void RegisterGuildHandlers()
         {
-            ShowcaseNet.OnServer("guild_create", (id, json) => { if (Of(id) is { } p) _ = GuildCreate(p, Name(json)); });
+            ShowcaseNet.OnServer("guild_create", (id, json) => { if (Of(id) is { } p) _ = Once(p, "guild_create", () => GuildCreate(p, Name(json))); });
             ShowcaseNet.OnServer("guild_invite", (id, json) => { if (Of(id) is { } p) _ = GuildInvite(p, Name(json)); });
             ShowcaseNet.OnServer("guild_accept", (id, json) => { if (Of(id) is { } p) _ = GuildAnswer(p, Name(json), true); });
             ShowcaseNet.OnServer("guild_decline", (id, json) => { if (Of(id) is { } p) _ = GuildAnswer(p, Name(json), false); });
