@@ -27,6 +27,9 @@ public static class ShowcaseBuild
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, AppId);
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+        // 판번호(versionCode)를 빌드마다 올린다 — 늘 1 이면 게임 케이스(Appium noReset)가 「같은 판이 이미 깔려 있다」며 새 APK 를 안 깔아, 폰에 옛 앱이 남은 채 돌았다.
+        // 2026-01-01 부터 지난 분 수라 빌드할 때마다 커지고 21억(안드로이드 상한)까지 4천 년 남는다
+        PlayerSettings.Android.bundleVersionCode = (int)(DateTime.UtcNow - new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMinutes;
         // CI 는 빌드마다 디버그 키가 새로 생겨 폰에 덮어 깔리지 않는다 — 워크플로가 맥과 같은 디버그 키를 이 자리에 풀어 두면 그 키로 서명한다
         if (System.IO.File.Exists(CiKeystore))
         {
