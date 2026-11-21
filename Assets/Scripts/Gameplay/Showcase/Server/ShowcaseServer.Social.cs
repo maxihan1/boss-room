@@ -53,18 +53,36 @@ namespace Unity.BossRoom.Gameplay.Showcase
             foreach (var p in Profiles.Values.Where(p => p.Loaded).ToList()) { Push(p); PushSocial(p); }
         }
 
-        static async Task RefreshNames(bool force = false)
+        // 바뀐 이름 · 레벨이 하나라도 있으면 true
+        static async Task<bool> RefreshNames(bool force = false)
         {
-            if (!GameApi.Enabled || (!force && Time.unscaledTime < s_NextNames)) return;
+            if (!GameApi.Enabled || (!force && Time.unscaledTime < s_NextNames)) return false;
             s_NextNames = Time.unscaledTime + 60f;
             var res = await GameApi.Post("/api/getallplayercharacters", null);
-            if (!res.Ok) return;
+            if (!res.Ok) return false;
+            var changed = false;
             foreach (var row in JsonUtility.FromJson<PlayerCharacterList>(res.Text).playerCharacters)
             {
                 var level = 1;
                 try { level = JsonUtility.FromJson<CharacterSave>(row.saveData ?? "{}")?.CharacterSaveData?.CharacterLevel ?? 1; } catch (Exception) { }
+                if (!s_Names.TryGetValue(row.id, out var before) || before != (row.name, level)) changed = true;
                 s_Names[row.id] = (row.name, level);
             }
+            return changed;
+        }
+
+        // 접속 안 한 친구 · 길드원의 이름 · 레벨을 1분마다 다시 읽는다(기획서 BRM-REQ-460) — 주기만 있고 부르는 곳이 없어 처음 읽은 값에 멈춰 있었다.
+        // 바뀐 게 있을 때만 친구 · 길드 목록을 다시 보낸다 — 매분 보내면 열린 창이 다시 그려져 그 순간의 누름이 사라진다
+        static void PollNames()
+        {
+            if (!GameApi.Enabled || !s_SocialLoaded || Time.unscaledTime < s_NextNames) return;
+            _ = RefreshNamesAndPush();
+        }
+
+        static async Task RefreshNamesAndPush()
+        {
+            if (!await RefreshNames()) return;
+            foreach (var p in Profiles.Values.Where(p => p.Loaded).ToList()) PushSocial(p);
         }
 
         static async Task<int> IdByName(string name)
