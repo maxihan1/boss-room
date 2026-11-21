@@ -50,7 +50,7 @@ namespace Unity.BossRoom.ConnectionManagement
             var disconnectReason = m_ConnectionManager.NetworkManager.DisconnectReason;
             if (m_NbAttempts < m_ConnectionManager.NbReconnectAttempts)
             {
-                if (string.IsNullOrEmpty(disconnectReason))
+                if (!ConnectReason.IsServerReason(disconnectReason))
                 {
                     m_ReconnectCoroutine = m_ConnectionManager.StartCoroutine(ReconnectCoroutine());
                 }
@@ -74,7 +74,8 @@ namespace Unity.BossRoom.ConnectionManagement
             }
             else
             {
-                if (string.IsNullOrEmpty(disconnectReason))
+                // 통신이 끊긴 채 시도를 다 썼으면 「접속 실패」가 아니라 「연결 끊김 — 서버와 연결이 끊어졌습니다」(BRM-REQ-037)
+                if (!ConnectReason.IsServerReason(disconnectReason))
                 {
                     m_ConnectStatusPublisher.Publish(ConnectStatus.GenericDisconnect);
                 }
