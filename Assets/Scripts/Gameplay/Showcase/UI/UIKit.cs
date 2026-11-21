@@ -177,7 +177,13 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         public static void Clear(Transform t)
         {
-            for (var i = t.childCount - 1; i >= 0; i--) Object.Destroy(t.GetChild(i).gameObject);
+            // Destroy 는 프레임 끝에야 지운다 — 먼저 떼어 내야 바로 다시 그린 줄 수(childCount)와 줄 배치가 맞는다(가방이 막 비었을 때 「가방이 비어 있습니다」가 안 뜨던 까닭)
+            for (var i = t.childCount - 1; i >= 0; i--)
+            {
+                var child = t.GetChild(i);
+                child.SetParent(null, false);
+                Object.Destroy(child.gameObject);
+            }
         }
 
         // 막대(경험치 · 체력) — 채움 비율은 돌려준 Image 의 fillAmount
