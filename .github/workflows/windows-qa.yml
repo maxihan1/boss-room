@@ -1,4 +1,4 @@
-# 윈도우 QA 빌드(control_cli SDK)를 game-ci 로 굽고 내려받을 수 있게 올린다 — VISION 윈도우 PC 에 까는 zip(배포는 안 함)
+# 윈도우 QA 빌드(control_cli SDK)를 game-ci 로 굽고 내려받을 수 있게 올린 뒤 Test Commander 「Boss Room PC」(BRP)에도 zip 을 올린다 — VISION 윈도우 PC 에 깔 빌드(서버 배포 · 배포 신호는 안 함)
 name: 윈도우 QA 빌드
 on:
   push:
@@ -11,7 +11,8 @@ permissions:
   contents: read
 env:
   UNITY_VERSION: 6000.3.10f1
-  CONTROL_CLI_REF: v0.8.0
+  # qa-deploy.yml 과 Test Commander kit 이 쓰는 판과 맞춘다 — 다르면 케이스가 부르는 명령(키 · 패드 · 값 기다리기)을 SDK 가 모른다
+  CONTROL_CLI_REF: v0.16.4
 jobs:
   windows:
     runs-on: ubuntu-latest
@@ -62,3 +63,13 @@ jobs:
             Builds/windows
             !Builds/windows/*_BurstDebugInformation_DoNotShip
           retention-days: 14
+      # 폰 빌드는 qa-deploy.yml 이 ARG 에 올린다. PC 빌드는 따로 등록한 애플리케이션 BRP 의 토큰으로 올린다(게임 하나 = 애플리케이션 하나)
+      - name: Test Commander 에 zip 올리기
+        env:
+          QAHUB_PC_CI_TOKEN: ${{ secrets.QAHUB_PC_CI_TOKEN }}
+          BUILD: ${{ steps.no.outputs.build }}
+        run: |
+          [ -n "$QAHUB_PC_CI_TOKEN" ] || { echo "QAHUB_PC_CI_TOKEN 이 없어 올리기를 건너뜀"; exit 0; }
+          (cd Builds/windows && zip -qr "$RUNNER_TEMP/bossroom-windows-qa.zip" . -x '*_BurstDebugInformation_DoNotShip/*')
+          curl --fail-with-body -sS -X POST -H "Authorization: Bearer $QAHUB_PC_CI_TOKEN" -H 'Content-Type: application/zip' \
+            --data-binary @"$RUNNER_TEMP/bossroom-windows-qa.zip" "https://commander.maxihan.com/api/builds?env=qa&buildNo=$BUILD"
