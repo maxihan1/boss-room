@@ -26,8 +26,8 @@ namespace Unity.BossRoom.ConnectionManagement
         public override void OnClientDisconnect(ulong _)
         {
             var disconnectReason = m_ConnectionManager.NetworkManager.DisconnectReason;
-            if (string.IsNullOrEmpty(disconnectReason) ||
-                disconnectReason == "Disconnected due to host shutting down.")
+            // 와이파이가 끊기는 등 통신이 끊기면 NGO 가 평문 사유를 넣는다 — 그것도 다시 연결한다. 서버가 일부러 끊은 것(JSON 사유)만 바로 안내하고 나간다
+            if (!ConnectReason.IsServerReason(disconnectReason))
             {
                 m_ConnectStatusPublisher.Publish(ConnectStatus.Reconnecting);
                 m_ConnectionManager.ChangeState(m_ConnectionManager.m_ClientReconnecting);

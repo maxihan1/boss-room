@@ -37,6 +37,9 @@ namespace Unity.BossRoom.ConnectionManagement
         public static string Encode(ConnectStatus status, string detail = "") =>
             JsonUtility.ToJson(new ConnectReason { status = status, detail = detail ?? "" });
 
+        // 서버가 일부러 끊을 때는 늘 Encode 한 JSON 을 준다. 평문(NGO 가 넣는 「Failed to connect to server.」 등)은 통신이 끊긴 것이다
+        public static bool IsServerReason(string reason) => !string.IsNullOrEmpty(reason) && reason[0] == '{';
+
         public static ConnectStatus Decode(string reason)
         {
             // NGO 가 직접 넣는 사유(「Failed to connect to server.」 같은 평문)는 JSON 이 아니다
