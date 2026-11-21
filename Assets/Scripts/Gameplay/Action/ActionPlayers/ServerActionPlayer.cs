@@ -40,6 +40,14 @@ namespace Unity.BossRoom.Gameplay.Actions
             m_LastUsedTimestamps = new Dictionary<ActionID, float>();
         }
 
+        /// <summary>지금 돌고 있는(대기열 · 비차단) 그 종류 행동 하나 — 없으면 null</summary>
+        public T FindRunning<T>() where T : Action
+        {
+            foreach (var a in m_Queue) if (a is T t) return t;
+            foreach (var a in m_NonBlockingActions) if (a is T t) return t;
+            return null;
+        }
+
         /// <summary>
         /// Perform a sequence of actions.
         /// </summary>

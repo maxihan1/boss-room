@@ -89,6 +89,9 @@ namespace Unity.BossRoom.Gameplay.Actions
             return m_StoppedChargingUpTime != 0;
         }
 
+        // 시험 서버 미션 로그가 「맞은 순간의 방패 충전률」을 적으려고 읽는다(받는 피해 배율 1 − (0.5 + c²/2) 의 c)
+        public float PercentChargedUp => GetPercentChargedUp();
+
         private float GetPercentChargedUp()
         {
             return ActionUtils.GetPercentChargedUp(m_StoppedChargingUpTime, TimeRunning, TimeStarted, Config.ExecTimeSeconds);

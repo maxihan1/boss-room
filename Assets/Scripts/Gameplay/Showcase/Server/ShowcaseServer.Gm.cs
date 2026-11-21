@@ -34,7 +34,10 @@ namespace Unity.BossRoom.Gameplay.Showcase
         public static void GmNote(ServerCharacter inflicter, ServerCharacter target, int hp)
         {
             if (!GmEnabled || hp == 0) return;
-            MissionLog(hp < 0 ? "hit" : "heal", $"\"from\":{LogWho(inflicter)},\"to\":{LogWho(target)},\"skill\":{Q(inflicter != null && !inflicter.IsNpc ? SeenOf(inflicter.OwnerClientId).Action : "-")},\"value\":{Math.Abs(hp)},\"hpBefore\":{(target != null ? target.HitPoints : 0)}");
+            // 맞은 플레이어가 방패(ChargedShieldAction)를 쓰는 중이면 그 순간 충전률 c 도 「조건」으로 적는다 — 받는 피해 배율 1 − (0.5 + c²/2) 를 테스트가 줄마다 다시 셈한다.
+            // 맞으면 충전이 먼저 멈추고(AttackedByEnemy) 그 값으로 배율을 셈한 뒤 여기 오니, 적는 c 가 배율에 쓴 c 와 같다
+            var shield = hp < 0 && target != null && !target.IsNpc ? target.ActionPlayer.FindRunning<Unity.BossRoom.Gameplay.Actions.ChargedShieldAction>() : null;
+            MissionLog(hp < 0 ? "hit" : "heal", $"\"from\":{LogWho(inflicter)},\"to\":{LogWho(target)},\"skill\":{Q(inflicter != null && !inflicter.IsNpc ? SeenOf(inflicter.OwnerClientId).Action : "-")},\"value\":{Math.Abs(hp)},\"hpBefore\":{(target != null ? target.HitPoints : 0)}{(shield != null ? $",\"shield\":{F(shield.PercentChargedUp)}" : "")}");
             if (hp < 0 && inflicter != null && !inflicter.IsNpc) SeenOf(inflicter.OwnerClientId).Dealt = -hp;
             if (target == null || target.IsNpc) return;
             if (hp < 0) SeenOf(target.OwnerClientId).Taken = -hp; else SeenOf(target.OwnerClientId).Healed = hp;
