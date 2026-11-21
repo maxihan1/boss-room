@@ -287,6 +287,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
                 if (!saved.Ok) throw new TestError($"캐릭터 저장 실패({saved.Code})");
                 s_Names[row.id] = (p.Name, p.Data.CharacterLevel);
             }
+            // 이름 · 레벨 기억(s_Names)을 여기서 바로 고치니 1분 주기 다시 읽기(PollNames)는 「바뀐 것 없음」으로 본다 — 접속한 사람의 친구 · 길드 목록을 여기서 보낸다
+            foreach (var o in Profiles.Values.Where(o => o.Loaded).ToList()) PushSocial(o);
             return $"{{\"ok\":true,\"characters\":{rows.Count}}}";
         }
 
