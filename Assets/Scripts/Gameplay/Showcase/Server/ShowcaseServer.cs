@@ -173,12 +173,20 @@ namespace Unity.BossRoom.Gameplay.Showcase
             finally { s_Busy.Remove(key); }
         }
 
+        // 캐릭터별로 지금 보내는 중인 저장 — 시험 주소가 계정을 되돌리기 전에 끝나길 기다린다(늦게 도착한 옛 값이 되돌린 값을 덮었다)
+        static readonly Dictionary<int, Task> s_Saving = new Dictionary<int, Task>();
+
         static async Task Persist(Profile p)
         {
+            // 되돌리기로 내보내는 중인 캐릭터(Loaded=false)는 저장하지 않는다
+            if (!p.Loaded) return;
             p.Dirty = false;
             p.Data.DataSavedOn = DateTime.UtcNow.ToString("o");
             if (!GameApi.Enabled || p.CharacterId == 0) return;
-            var res = await GameApi.Post("/api/saveplayercharacter", new SaveCharacterRequest { Id = p.CharacterId, Name = p.Name, SaveData = JsonUtility.ToJson(p.Save) });
+            var save = GameApi.Post("/api/saveplayercharacter", new SaveCharacterRequest { Id = p.CharacterId, Name = p.Name, SaveData = JsonUtility.ToJson(p.Save) });
+            s_Saving[p.CharacterId] = save;
+            var res = await save;
+            if (s_Saving.TryGetValue(p.CharacterId, out var current) && current == save) s_Saving.Remove(p.CharacterId);
             if (!res.Ok) p.Dirty = true;
         }
 

@@ -247,11 +247,16 @@ namespace Unity.BossRoom.Gameplay.Showcase
             if (kick && Profiles.Values.FirstOrDefault(p => p.AccountId == account) is { } online)
             {
                 online.Dirty = false;
+                // 내보내는 동안(4초를 넘겨도) 10초 저장 · 나갈 때 저장 · 진행 중인 처리가 옛 값을 저장하지 못하게 막는다
+                online.Loaded = false;
                 NetworkManager.Singleton.DisconnectClient(online.ClientId, ConnectReason.Encode(ConnectStatus.HostEndedSession, "시험 주소가 계정을 되돌립니다"));
                 for (var n = 0; n < 40 && Profiles.ContainsKey(online.ClientId); n++) await Task.Delay(100);
             }
             var res = await GameApi.Post("/api/getplayercharacters", new AccountIdRequest { AccountId = account });
             if (!res.Ok) throw new TestError($"캐릭터 읽기 실패({res.Code})");
+            // 이미 보낸 저장(10초 저장 · 방금 나간 접속의 저장)은 도착할 때까지 기다린다 — 되돌린 뒤 도착하면 옛 값으로 덮는다
+            foreach (var row in JsonUtility.FromJson<PlayerCharacterList>(res.Text).playerCharacters)
+                if (s_Saving.TryGetValue(row.id, out var pending)) await pending;
             return (account, JsonUtility.FromJson<PlayerCharacterList>(res.Text).playerCharacters);
         }
 
