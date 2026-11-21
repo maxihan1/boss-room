@@ -23,6 +23,8 @@ namespace Unity.BossRoom.ConnectionManagement
 
         const float k_TimeBeforeFirstAttempt = 1;
         const float k_TimeBetweenAttempts = 5;
+        // 둘째 시도부터도 「시도 n/2」를 이만큼은 보여 준 뒤 접속한다 — 통신이 끊긴 폰은 접속이 곧바로 실패해 안내가 한두 프레임만 떴다 사라졌다
+        const float k_TimeShowAttempt = 2;
 
         public override void Enter()
         {
@@ -111,10 +113,7 @@ namespace Unity.BossRoom.ConnectionManagement
             // If first attempt, wait some time before attempting to reconnect to give time to services to update
             // (i.e. if in a Session and the host shuts down unexpectedly, this will give enough time for the Session to be
             // properly deleted so that we don't reconnect to an empty Session
-            if (m_NbAttempts == 0)
-            {
-                yield return new WaitForSeconds(k_TimeBeforeFirstAttempt);
-            }
+            yield return new WaitForSeconds(m_NbAttempts == 0 ? k_TimeBeforeFirstAttempt : k_TimeShowAttempt);
 
             m_NbAttempts++;
             var reconnectingSetupTask = m_ConnectionMethod.SetupClientReconnectionAsync();
