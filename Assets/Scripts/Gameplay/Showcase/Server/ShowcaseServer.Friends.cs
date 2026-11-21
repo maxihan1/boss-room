@@ -101,11 +101,12 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
         static async Task PartyInvite(Profile p, string name)
         {
+            // 내 파티가 가득 찼으면 누구를 부르든 이 알림이 먼저다(기획서 BRM-REQ-268) — 상대를 먼저 보면 접속 안 한 이름엔 다른 알림이 떴다
+            if ((PartyOf(p)?.Count ?? 1) >= k_PartyMax) { Toast(p, "파티는 최대 4명입니다", true); return; }
             var target = Online(await IdByName(name));
             if (target == null) { Toast(p, "접속 중인 캐릭터만 초대할 수 있습니다", true); return; }
             if (target == p) { Toast(p, "자신은 초대할 수 없습니다", true); return; }
             if (PartyOf(target) != null) { Toast(p, $"{target.Name} 님은 이미 파티에 있습니다", true); return; }
-            if ((PartyOf(p)?.Count ?? 1) >= k_PartyMax) { Toast(p, "파티는 최대 4명입니다", true); return; }
             s_Invites.RemoveAll(i => i.kind == "party" && i.to == target.ClientId);
             s_Invites.Add(("party", p.ClientId, p.Name, target.ClientId));
             ShowcaseNet.ToClient(target.ClientId, "invite", new Invite { Kind = "party", From = p.Name, Text = $"{p.Name} 님이 파티에 초대했습니다" });
