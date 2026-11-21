@@ -29,7 +29,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
         static void Init()
         {
             ShowcaseClient.ProfileChanged += p => { if (Instance == null) Create(); };
-            ShowcaseClient.Toasted += t => Instance?.ShowToast(t);
+            // 캐릭터를 못 불러와 캐릭터 정보가 한 번도 안 온 채 오류 알림만 오면 HUD 가 없어 알림이 버려졌다 — 알림이 오면 HUD 를 먼저 만든다
+            ShowcaseClient.Toasted += t => { if (Instance == null) Create(); Instance.ShowToast(t); };
             var nm = NetworkManager.Singleton;
             if (nm != null) nm.OnClientStopped += _ => { if (Instance != null) Destroy(Instance.gameObject); };
         }
