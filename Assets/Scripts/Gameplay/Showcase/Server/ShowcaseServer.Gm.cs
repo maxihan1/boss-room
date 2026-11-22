@@ -124,6 +124,7 @@ namespace Unity.BossRoom.Gameplay.Showcase
         static string ActionRow(Unity.BossRoom.Gameplay.Actions.Action a) => a == null ? "-" : $"{ActionName(a)}(값 {ActionAmount(a)} · 사거리 {F(a.Config.Range)} · 재사용 {F(a.Config.ReuseTimeSeconds)}초)";
 
         // 투사체 스킬(화살 쏘기 · 마력탄 등)은 실제 피해가 Amount 가 아니라 투사체 설정(Projectiles[].Damage)에 있다 — 그 값을 찍는다
+        // 던지기(ImpToss)만은 Damage 를 안 읽고 던진 물건 프리팹(ImpTossedItem)의 m_DamagePoints 로 때린다 — 두 값을 같게 둬야 찍는 값이 맞는다
         static int ActionAmount(Unity.BossRoom.Gameplay.Actions.Action a) =>
             a.Config.Projectiles != null && a.Config.Projectiles.Length > 0 ? a.Config.Projectiles[0].Damage : a.Config.Amount;
 
