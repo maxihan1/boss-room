@@ -88,6 +88,8 @@ namespace Unity.BossRoom.Gameplay.Showcase
 
             m_PotionButton = UIKit.Button(root, "", new Vector2(1f, 0f), new Vector2(-760, 100), new Vector2(190, 90), () => ShowcaseClient.Send("potion"), 28).GetComponent<RectTransform>();
             m_Potion = m_PotionButton.GetComponentInChildren<TextMeshProUGUI>();
+            // 물약은 키보드 안내가 없어 패드 그림만 붙인다
+            PadGlyph.Attach(m_PotionButton, null, "ps_r1", "xbox_rb", new Vector2(0, -4), 40);
             m_Toasts = UIKit.Rect(root, "Toasts", new Vector2(0.5f, 1f), new Vector2(0, -260), new Vector2(900, 300));
             var v = m_Toasts.gameObject.AddComponent<VerticalLayoutGroup>();
             v.childAlignment = TextAnchor.UpperCenter;
