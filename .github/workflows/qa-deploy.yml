@@ -123,6 +123,6 @@ jobs:
           [ -n "$QAHUB_CI_TOKEN" ] || { echo "QAHUB_CI_TOKEN 이 없어 올리기 · 신호를 건너뜀"; exit 0; }
           curl --fail-with-body -sS -X POST -H "Authorization: Bearer $QAHUB_CI_TOKEN" -H 'Content-Type: application/octet-stream' \
             --data-binary @bossroom-qa.apk "https://commander.maxihan.com/api/builds?env=qa&buildNo=$BUILD"
-          BODY=$(jq -cn --arg b "$BUILD" '{build:$b, services:["ARG"]}')
+          BODY=$(jq -cn --arg b "$BUILD" '{build:$b, services:["BRM"]}')
           if [ -n "$BTS_DEPLOY_WEBHOOK" ]; then curl --fail-with-body -sS -o /dev/null -X POST -H 'Content-Type: application/json' -d "$BODY" "$BTS_DEPLOY_WEBHOOK"; fi
           if [ -n "$QAHUB_DEPLOY_TOKEN" ]; then curl --fail-with-body -sS -X POST -H "Authorization: Bearer $QAHUB_DEPLOY_TOKEN" -H 'Content-Type: application/json' -d "$BODY" "https://commander.maxihan.com/api/projects/16/deploys"; fi
