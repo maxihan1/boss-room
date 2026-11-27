@@ -12,7 +12,7 @@ permissions:
 env:
   UNITY_VERSION: 6000.3.10f1
   # qa-deploy.yml 과 Test Commander kit 이 쓰는 판과 맞춘다 — 다르면 케이스가 부르는 명령(키 · 패드 · 값 기다리기)을 SDK 가 모른다
-  CONTROL_CLI_REF: v0.16.4
+  CONTROL_CLI_REF: v0.18.0
 jobs:
   windows:
     runs-on: ubuntu-latest
